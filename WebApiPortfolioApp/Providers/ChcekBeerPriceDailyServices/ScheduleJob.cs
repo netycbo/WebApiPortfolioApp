@@ -16,7 +16,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
             var trigger = TriggerBuilder.Create()
                 .WithIdentity("DailyTrigger", "default")
                 .StartNow()
-                .WithCronSchedule("0 0/2 * * * ?") 
+                .WithCronSchedule("0 0 12 ? * FRI *") 
                 .ForJob(job)
 
                 .Build();

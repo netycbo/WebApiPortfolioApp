@@ -97,11 +97,7 @@ builder.Services.AddQuartz(q =>
 {
     q.UseMicrosoftDependencyInjectionJobFactory();
     q.AddJob<PriceCheckJob>(opts => opts.WithIdentity("PriceCheckJob").StoreDurably());
-    q.AddTrigger(opts => opts
-        .ForJob("PriceCheckJob")
-        .WithIdentity("PriceCheckTrigger")
-        .StartNow()
-        .WithCronSchedule("0 */56 * * * ?"));  // Every 2 minutes
+    
 });
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 

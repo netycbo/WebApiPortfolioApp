@@ -85,6 +85,8 @@ builder.Services.AddScoped<ISaveProductService, SaveProductService>();
 builder.Services.AddScoped<IUserIdService, UserIdService>();
 builder.Services.AddScoped<ApplicationUser>();
 builder.Services.AddScoped<IComparePrices, ComparePrices>();
+builder.Services.AddScoped<IFetchProductDetails,ProductDetailsFetcher>();
+builder.Services.AddScoped<IAveragePriceComparator, AveragePriceComperator>();
 builder.Services.AddScoped<IApiCall, ApiCall>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();

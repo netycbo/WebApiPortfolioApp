@@ -27,10 +27,13 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
         private readonly IUserIdService _userIdService;
         private readonly IProductFilterService _productFilterService;
 		private readonly ViewRender _viewRenderer;
+        private readonly IFetchProductDetails _productDetailsFetcher;
+        private readonly IAveragePriceComparator _averagePriceComparator;
 
-		public PriceCheckJob(IApiCall apiCall, IMapper mapper, IComparePrices comparePrices,  
+        public PriceCheckJob(IApiCall apiCall, IMapper mapper, IComparePrices comparePrices,  
                             AppDbContext context, IProductFilterService productFilterService, IEmailService emailService,
-                            IUserIdService userIdService, ISaveProductService productSaveService, ViewRender viewRenderer)
+                            IUserIdService userIdService, ISaveProductService productSaveService, ViewRender viewRenderer,
+                            IFetchProductDetails productDetailsFetcher, IAveragePriceComparator averagePriceComparator)
         {
             _apiCall = apiCall;
             _mapper = mapper;
@@ -40,14 +43,16 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
             _productSaveService = productSaveService;
             _viewRenderer = viewRenderer;
             _productFilterService = productFilterService;
+            _productDetailsFetcher = productDetailsFetcher;
+            _averagePriceComparator = averagePriceComparator;
         }
         public async Task Execute(IJobExecutionContext context)
         {
 			var emailContent = await _viewRenderer.RenderToStringAsync("SendEmail/NewsLetter/PriceBelowAvarage", null);
 			var isJob = context.JobDetail.JobDataMap.GetBoolean("IsJob"); 
-            var product = await FetchProductDetails(isJob, context.CancellationToken);
+            var product = await _productDetailsFetcher.FetchProductDetails(isJob, context.CancellationToken);
             var productAvgPrice = await _comparePrices.ComparePricesAsync(product.Data[1].Name);
-            var isPriceBelowAverage = await CompareAvgPrices(product.Data[1].Name);          
+            var isPriceBelowAverage = await _averagePriceComparator.IsPriceBelowAverageAsync(product.Data[1].Name);
             var subscribedEmails = await GetSubscribedUserEmailsAsync();
                 foreach (var email in subscribedEmails)
                 {
@@ -59,62 +64,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
                     });
                 }
         }
-        private async Task<RawJsonDtoResponse> FetchProductDetails(bool isJob, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var restRequest = _apiCall.CreateProductSearchRequest("Hansa Mango Ipa 0,5");
 
-                var restResponse = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
-                if (restResponse.IsSuccessful && !string.IsNullOrEmpty(restResponse.Content))
-                {
-                    Console.WriteLine($"Response Content: {restResponse.Content}");
-                    var serializer = new JsonSerializer();
-                    var rawProductResponse = serializer.Deserialize<RawJsonDtoResponse>(new JsonTextReader(new StringReader(restResponse.Content)));
-                    if (rawProductResponse == null || rawProductResponse.Data == null)
-                    {
-                        return new RawJsonDtoResponse();
-                    }
-                    var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
-
-                    var filteredProducts = _productFilterService.FilterProducts(mappedProducts, "Hansa Mango Ipa 0,5");
-
-                    await _productSaveService.SaveProductsAsync(filteredProducts, -1, true );
-
-                    return new RawJsonDtoResponse { Data = filteredProducts };
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to fetch data: {restResponse.ErrorMessage}");
-                    return new RawJsonDtoResponse();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in FetchProductDetails: {ex.Message}");
-                return new RawJsonDtoResponse();
-            }
-        }
-
-        private async  Task<bool> CompareAvgPrices(string productName)
-        {
-            var averagePrice = await _comparePrices.ComparePricesAsync(productName);
-            if (!averagePrice.HasValue)
-            {
-                return false; 
-            }
-            var lastRecord = await _context.SearchHistory
-                .Where(sh => sh.SearchString == productName)
-                .OrderByDescending(sh => sh.Id)
-                .FirstOrDefaultAsync();
-
-            if (lastRecord == null)
-            {
-                return false; 
-            }
-
-            return lastRecord.Price < averagePrice.Value;
-        }
         private async Task<List<string>> GetSubscribedUserEmailsAsync()
         {
             return await _context.Users

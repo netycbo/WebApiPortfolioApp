@@ -8,6 +8,7 @@ using System.Text;
 using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
+using WebApiPortfolioApp.ExeptionsHandling.Exeptions;
 
 using WebApiPortfolioApp.Data.Entinities.Identity;
 
@@ -32,18 +33,12 @@ namespace WebApiPortfolioApp.API.Handlers
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
-                return new LoginResponse
-                {
-                    Message = "User not found."
-                };
+               throw new UserNotFoundException("User not found.");
             }
             var result = await _userManager.CheckPasswordAsync(user, request.Password);
             if (!result)
             {
-                return new LoginResponse
-                {
-                    Message = "Invalid password."
-                };
+                throw new InvalidPasswordException("Invalid password.");
             }
             
             var roles = await _userManager.GetRolesAsync(user);

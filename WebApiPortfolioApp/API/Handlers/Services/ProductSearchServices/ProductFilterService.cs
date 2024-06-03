@@ -5,9 +5,10 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
 {
     public class ProductFilterService : IProductFilterService
     {
-        public List<RawJsonDto> FilterProducts(List<RawJsonDto> products)
+        public List<RawJsonDto> FilterProducts(List<RawJsonDto> products, string filterName)
         {
-            return products.Select(product =>
+            var filteredProducts = products.Where(product => product.Name.Equals(filterName, StringComparison.OrdinalIgnoreCase)).ToList();
+            return filteredProducts.Select(product =>
             {
                 var lowestPrice = product.Price_History.OrderBy(ph => ph.Price).FirstOrDefault();
                 product.Price_History = new List<Price_History> { lowestPrice };

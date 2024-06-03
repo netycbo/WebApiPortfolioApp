@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
-using AutoMapper.Internal;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
 using WebApiPortfolioApp.Data.Entinities.Identity;
+using WebApiPortfolioApp.ExeptionsHandling.Exeptions;
 using WebApiPortfolioApp.Providers.ViewRender;
 using WebApiPortfolioApp.Services.SendEmail;
+
 
 namespace WebApiPortfolioApp.API.Handlers
 {
@@ -37,48 +38,48 @@ namespace WebApiPortfolioApp.API.Handlers
             var emailContent = await _viewRenderer.RenderToStringAsync("SendEmail/ConfirmationEmail/ConfirmationEmail", new { UserName = request.Name });
 
             var userExist = await _userManager.FindByNameAsync(request.Name);
-            if (userExist == null)
+            if (userExist != null)
             {
-                var user = _mapper.Map<ApplicationUser>(request);
-                IdentityResult result = await _userManager.CreateAsync(user, request.Password);
-                if (result.Succeeded)
-                {
-                    string roleName = "Admin";
-                    if (!await _roleManager.RoleExistsAsync(roleName))
-                    {
-                        await _roleManager.CreateAsync(new IdentityRole(roleName));
-                    }
-                    await _userManager.AddToRoleAsync(user, roleName);
-
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = $"{_configuration["FrontendUrl"]}/confirm-email?user={user.Id}&code={Uri.EscapeDataString(code)}";
-
-                    await _emailService.SendEmailAsync(new EmailRequest
-                    {
-                        ToEmail = user.Email,
-                        Subject = "Confirm your email",
-                        Body = emailContent.Replace("{{callbackUrl}}", callbackUrl) 
-                    });
-                    var registeringDto = _mapper.Map<RegisteringDto>(user);
-                   
-                    return new RegisteringResponse
-                    {
-                        Data = _mapper.Map<RegisteringDto>(user),
-                        
-                    };
-                }
-                else
-                {
-                    return new RegisteringResponse
-                    {
-                        // Error handling or additional info could be added here
-                    };
-                }
+                throw new UsernameAlreadyTakenException("The username is already taken.");
             }
-            return new RegisteringResponse
+
+            var emailExist = await _userManager.FindByEmailAsync(request.Email);
+            if (emailExist != null)
             {
-                // Error handling or additional info could be added here
-            };
+                throw new EmailNotUniqueException("The email is already in use.");
+            }
+
+            var user = _mapper.Map<ApplicationUser>(request);
+            IdentityResult result = await _userManager.CreateAsync(user, request.Password);
+            if (result.Succeeded)
+            {
+                string roleName = "Admin";
+                if (!await _roleManager.RoleExistsAsync(roleName))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+                await _userManager.AddToRoleAsync(user, roleName);
+
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var callbackUrl = $"{_configuration["FrontendUrl"]}/confirm-email?user={user.Id}&code={Uri.EscapeDataString(code)}";
+
+                await _emailService.SendEmailAsync(new EmailRequest
+                {
+                    ToEmail = user.Email,
+                    Subject = "Confirm your email",
+                    Body = emailContent.Replace("{{callbackUrl}}", callbackUrl)
+                });
+                var registeringDto = _mapper.Map<RegisteringDto>(user);
+
+                return new RegisteringResponse
+                {
+                    Data = registeringDto,
+                };
+            }
+            else
+            {
+                throw new CantCreateUserExeption("Cant create user");
+            }
         }
     }
 }

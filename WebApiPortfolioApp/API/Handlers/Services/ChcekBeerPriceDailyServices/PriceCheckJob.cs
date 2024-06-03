@@ -3,6 +3,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Quartz;
+using RestSharp;
 using System.Security.Claims;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces;
@@ -53,17 +54,16 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
                     await _emailService.SendEmailAsync(new EmailRequest
                     {
                         ToEmail = email,
-                        Subject = isPriceBelowAverage ? "Spadła cena piwa" : "Srednia cena bez zmian",
-                        Body = isPriceBelowAverage ? emailContent : $"Srednia cena dalej wynosi{productAvgPrice}"
+                        Subject = isPriceBelowAverage ? "The price of beer just dropped" : "The average price of beer has not changed",
+                        Body = isPriceBelowAverage ? emailContent : $"The average beer price is: {productAvgPrice}"
                     });
                 }
         }
-
         private async Task<RawJsonDtoResponse> FetchProductDetails(bool isJob, CancellationToken cancellationToken)
         {
             try
             {
-                var restRequest = _apiCall.CreateProductSearchRequest("Hansa Mango Ipa 0,5lx6 boks");
+                var restRequest = _apiCall.CreateProductSearchRequest("Hansa Mango Ipa 0,5");
 
                 var restResponse = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
                 if (restResponse.IsSuccessful && !string.IsNullOrEmpty(restResponse.Content))
@@ -77,7 +77,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
                     }
                     var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
 
-                    var filteredProducts = _productFilterService.FilterProducts(mappedProducts);
+                    var filteredProducts = _productFilterService.FilterProducts(mappedProducts, "Hansa Mango Ipa 0,5");
 
                     await _productSaveService.SaveProductsAsync(filteredProducts, -1, true );
 
@@ -119,7 +119,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
         {
             return await _context.Users
                                  .Where(user => user.IsSubscribedToLowBeerPriceAletr)
-                                 .Select(user => user.Email)
+                                 .Select(user => user.Email!)
                                  .ToListAsync();
         }
     }

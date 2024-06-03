@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Quartz;
 using RestSharp;
@@ -18,14 +17,10 @@ using WebApiPortfolioApp.Data.Entinities.Identity;
 using WebApiPortfolioApp.Providers;
 using WebApiPortfolioApp.Providers.ViewRender;
 using WebApiPortfolioApp.Services.SendEmail;
-using Microsoft.Extensions.Logging;
-using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces; // Dodaj to, aby użyć logowania
+using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces;
+using WebApiPortfolioApp.ExeptionsHandling;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Dodaj logowanie
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -83,16 +78,19 @@ builder.Services.Configure<RazorViewEngineOptions>(options =>
     options.ViewLocationFormats.Add("~/Providers/{1}/{0}.cshtml");
     options.ViewLocationFormats.Add("~/Providers/{0}.cshtml");
 });
-var apiUrl = builder.Configuration["PopulationByRegionByYearApi:BaseUrl"];
+var apiUrl = builder.Configuration["KassalappenApi:BaseUrl"];
 builder.Services.AddSingleton<IRestClient>(new RestClient(apiUrl));
 builder.Services.AddScoped<IProductFilterService, ProductFilterService>();
 builder.Services.AddScoped<ISaveProductService, SaveProductService>();
 builder.Services.AddScoped<IUserIdService, UserIdService>();
 builder.Services.AddScoped<ApplicationUser>();
 builder.Services.AddScoped<IComparePrices, ComparePrices>();
-string apiKey = "hV4paRf4LA89fFjNSqpCz2QvbNUwXNwpmhuwNIds";
 builder.Services.AddScoped<IApiCall, ApiCall>(provider =>
-    new ApiCall(provider.GetRequiredService<IRestClient>(), apiKey));
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var apiKey = configuration.GetValue<string>("AppSettings:ApiKey");
+    return new ApiCall(provider.GetRequiredService<IRestClient>(), apiKey);
+});
 builder.Services.AddQuartz(q =>
 {
     q.UseMicrosoftDependencyInjectionJobFactory();
@@ -107,7 +105,6 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 
-// Schedule the job
 var schedulerFactory = app.Services.GetRequiredService<ISchedulerFactory>();
 var scheduler = await schedulerFactory.GetScheduler();
 await JobScheduler.ScheduleJob(scheduler);
@@ -117,7 +114,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

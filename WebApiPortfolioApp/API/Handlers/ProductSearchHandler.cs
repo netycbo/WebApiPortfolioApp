@@ -8,6 +8,7 @@ using WebApiPortfolioApp.API.Handlers.Services;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
+using WebApiPortfolioApp.ExeptionsHandling.Exeptions;
 
 namespace WebApiPortfolioApp.API.Handlers
 {
@@ -37,9 +38,8 @@ namespace WebApiPortfolioApp.API.Handlers
             Console.WriteLine($"Response Content: {response.Content}");
 
             if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
-            {
-                Console.WriteLine($"Failed to fetch data: {response.ErrorMessage}");
-                return new RawJsonDtoResponse();
+            { 
+                throw new FailedToFetchDataExeption("Failed to fetch data");
             }
 
             try
@@ -49,19 +49,19 @@ namespace WebApiPortfolioApp.API.Handlers
 
                 if (rawProductResponse == null || rawProductResponse.Data == null)
                 {
-                    return new RawJsonDtoResponse();
+                    throw new CantDeserializeExeption(response.Content);
                 }
 
                 var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
 
-                // Filtracja produktów
-                var filteredProducts = _productFilterService.FilterProducts(mappedProducts);
+                var filteredProducts = _productFilterService.FilterProducts(mappedProducts, request.SearchProduct);
+                    if (filteredProducts.Count == 0) 
+                    {
+                       throw new NoMatchingFiltredProductsExeption("No matching filtred products");
+                    }
 
-                // Pobierz UserId z kontekstu zalogowanego użytkownika
                 var userId = _userIdService.GetUserId();
 
-
-                // Zapis do bazy danych
                 await _productSaveService.SaveProductsAsync(filteredProducts, userId, false);
 
                 return new RawJsonDtoResponse { Data = filteredProducts };

@@ -19,6 +19,7 @@ using WebApiPortfolioApp.Providers.ViewRender;
 using WebApiPortfolioApp.Services.SendEmail;
 using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces;
 using WebApiPortfolioApp.ExeptionsHandling;
+using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,6 +88,8 @@ builder.Services.AddScoped<ApplicationUser>();
 builder.Services.AddScoped<IComparePrices, ComparePrices>();
 builder.Services.AddScoped<IFetchProductDetails,ProductDetailsFetcher>();
 builder.Services.AddScoped<IAveragePriceComparator, AveragePriceComperator>();
+builder.Services.AddScoped<IShopNameValidator, ShopNameValidator>();
+builder.Services.AddSingleton<ShopNameList>();
 builder.Services.AddScoped<IApiCall, ApiCall>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();

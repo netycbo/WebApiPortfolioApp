@@ -12,11 +12,11 @@ namespace WebApiPortfolioApp.API.Handlers.Services
             _restClient = restClient;
             _apiKey = apiKey;
         }
-        public RestRequest CreateProductSearchRequest(string searchProduct)
+        public RestRequest CreateProductSearchRequest(string searchProduct, int numberOfResults)
         {
             var restRequest = new RestRequest("/https://kassal.app/api/v1/products", Method.Get);
             restRequest.AddParameter("search", searchProduct);
-            restRequest.AddParameter("size", 10);
+            restRequest.AddParameter("size",numberOfResults );
             restRequest.AddParameter("sort", "price_desc");
             restRequest.AddHeader("Authorization", $"Bearer {_apiKey}");
             return restRequest;

@@ -33,7 +33,7 @@ namespace WebApiPortfolioApp.API.Handlers
         }
         public async Task<RawJsonDtoResponse> Handle(ProductSearchRequest request, CancellationToken cancellationToken)
         {
-            var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct);
+            var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct, request.NumberOfResults);
             var response = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
             Console.WriteLine($"Response Content: {response.Content}");
 
@@ -54,8 +54,8 @@ namespace WebApiPortfolioApp.API.Handlers
 
                 var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
 
-                var filteredProducts = _productFilterService.FilterProducts(mappedProducts, request.SearchProduct);
-                    if (filteredProducts.Count == 0) 
+                var filteredProducts = await _productFilterService.FilterProducts(mappedProducts, request.Shop);
+                    if(filteredProducts.Count == 0)
                     {
                        throw new NoMatchingFiltredProductsExeption("No matching filtred products");
                     }

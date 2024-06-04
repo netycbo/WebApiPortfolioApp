@@ -28,7 +28,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
         {
             try
             {
-                var restRequest = _apiCall.CreateProductSearchRequest("Hansa Mango Ipa 0,5l boks");
+                var restRequest = _apiCall.CreateProductSearchRequest("Hansa Mango Ipa 0,5l boks", numberOfResults: 10);
 
                 var restResponse = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
                 if (restResponse.IsSuccessful && !string.IsNullOrEmpty(restResponse.Content))
@@ -42,7 +42,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
                     }
                     var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
 
-                    var filteredProducts = _productFilterService.FilterProducts(mappedProducts, "Hansa Mango Ipa 0,5");
+                    var filteredProducts = await _productFilterService.FilterProducts(mappedProducts, "Hansa Mango Ipa 0,5");
 
                     await _productSaveService.SaveProductsAsync(filteredProducts, -1, true);
 

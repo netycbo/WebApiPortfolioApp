@@ -2,7 +2,7 @@
 {
     public class ShopNameList
     {
-        List<string> names = new List<string>()
+        public List<string> Names { get; } = new List<string>()
         {
             "AlltiMat",
             "Bunnpris",

@@ -90,6 +90,11 @@ builder.Services.AddScoped<IFetchProductDetails,ProductDetailsFetcher>();
 builder.Services.AddScoped<IAveragePriceComparator, AveragePriceComperator>();
 builder.Services.AddScoped<IShopNameValidator, ShopNameValidator>();
 builder.Services.AddSingleton<ShopNameList>();
+builder.Services.AddSingleton(provider =>
+{
+    var shopNameList = provider.GetRequiredService<ShopNameList>();
+    return shopNameList.Names;
+});
 builder.Services.AddScoped<IApiCall, ApiCall>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();

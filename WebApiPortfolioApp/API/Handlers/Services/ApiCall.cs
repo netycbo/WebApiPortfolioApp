@@ -17,7 +17,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services
             var restRequest = new RestRequest("/https://kassal.app/api/v1/products", Method.Get);
             restRequest.AddParameter("search", searchProduct);
             restRequest.AddParameter("size",numberOfResults );
-            restRequest.AddParameter("sort", "price_desc");
+            restRequest.AddParameter("sort", "price_asc");
             restRequest.AddHeader("Authorization", $"Bearer {_apiKey}");
             return restRequest;
         }

@@ -53,7 +53,7 @@ namespace WebApiPortfolioApp.API.Handlers
                 }
 
                 var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
-
+                
                 var filteredProducts = await _productFilterService.FilterProducts(mappedProducts, request.Shop);
                     if(filteredProducts.Count == 0)
                     {

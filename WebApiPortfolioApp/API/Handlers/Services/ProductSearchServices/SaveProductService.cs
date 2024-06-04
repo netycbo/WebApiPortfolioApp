@@ -26,9 +26,9 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
                 {
                     UserId = isJob ? -1 : userId,
                     IsJob = isJob,
-                    SearchString = product.Name,
+                    SearchString = product.Name ?? string.Empty,
                     SearchDate = DateTime.UtcNow,
-                    Shop = product?.Store.Name ?? null,
+                    Shop = product?.Store.Name ?? string.Empty,
                     Price = priceHistory?.Price ?? 0,
                     Created = DateTime.UtcNow,
                 };

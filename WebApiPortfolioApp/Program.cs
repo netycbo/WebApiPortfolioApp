@@ -109,8 +109,8 @@ await JobScheduler.ScheduleJob(scheduler);
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+   app.UseSwagger();
+   app.UseSwaggerUI();
 }
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();

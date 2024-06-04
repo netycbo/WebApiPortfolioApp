@@ -22,7 +22,7 @@ namespace WebApiPortfolioApp.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("Login")]
+        [HttpGet("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await _mediator.Send(request);

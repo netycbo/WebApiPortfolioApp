@@ -17,7 +17,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
             if (!string.IsNullOrEmpty(shopName))
                 {
                  var validatedShopName = await _validator.ValidateShopName(shopName);
-                if (validatedShopName != "No matching name found")
+                if (validatedShopName != "No matching Shop name found")
                 {
                     products = products.Where(product => product.Store.Name == validatedShopName).ToList();
                 }

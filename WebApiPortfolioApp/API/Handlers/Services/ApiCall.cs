@@ -9,11 +9,16 @@ namespace WebApiPortfolioApp.API.Handlers.Services
 
         public ApiCall(IRestClient restClient, string apiKey)
         {
-            _restClient = restClient;
-            _apiKey = apiKey;
+            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+            _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
         }
         public RestRequest CreateProductSearchRequest(string searchProduct, int numberOfResults)
         {
+            if (string.IsNullOrEmpty(searchProduct))
+                throw new ArgumentNullException(nameof(searchProduct));
+            if (numberOfResults <= 0)
+                throw new ArgumentOutOfRangeException(nameof(numberOfResults));
+
             var restRequest = new RestRequest("/https://kassal.app/api/v1/products", Method.Get);
             restRequest.AddParameter("search", searchProduct);
             restRequest.AddParameter("size",numberOfResults );

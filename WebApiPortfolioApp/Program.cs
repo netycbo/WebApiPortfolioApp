@@ -20,6 +20,9 @@ using WebApiPortfolioApp.Services.SendEmail;
 using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces;
 using WebApiPortfolioApp.ExeptionsHandling;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using WebApiPortfolioApp.HealthChecks;
+using WebApiPortfolioApp.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,12 +82,21 @@ builder.Services.Configure<RazorViewEngineOptions>(options =>
     options.ViewLocationFormats.Add("~/Providers/{1}/{0}.cshtml");
     options.ViewLocationFormats.Add("~/Providers/{0}.cshtml");
 });
-var apiUrl = builder.Configuration["KassalappenApi:BaseUrl"];
-builder.Services.AddSingleton<IRestClient>(new RestClient(apiUrl));
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("KassalappenApi"));
+builder.Services.AddSingleton<IRestClient>(sp => {
+    var apiSettings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
+    return new RestClient(apiSettings.BaseUrl);
+});
+
 builder.Services.AddScoped<IProductFilterService, ProductFilterService>();
 builder.Services.AddScoped<ISaveProductService, SaveProductService>();
 builder.Services.AddScoped<IUserIdService, UserIdService>();
 builder.Services.AddScoped<ApplicationUser>();
+builder.Services.AddScoped<DatabaseHealthCheck>();
+builder.Services.AddScoped<ApiHealthCheck>();
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("Database")
+    .AddCheck<ApiHealthCheck>("Api");
 builder.Services.AddScoped<IComparePrices, ComparePrices>();
 builder.Services.AddScoped<IFetchProductDetails,ProductDetailsFetcher>();
 builder.Services.AddScoped<IAveragePriceComparator, AveragePriceComperator>();
@@ -98,7 +110,7 @@ builder.Services.AddSingleton(provider =>
 builder.Services.AddScoped<IApiCall, ApiCall>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
-    var apiKey = configuration.GetValue<string>("AppSettings:ApiKey");
+    var apiKey = configuration.GetValue<string>("KassalappenApi:ApiKey");
     return new ApiCall(provider.GetRequiredService<IRestClient>(), apiKey);
 });
 builder.Services.AddQuartz(q =>
@@ -120,6 +132,7 @@ if (app.Environment.IsDevelopment())
    app.UseSwagger();
    app.UseSwaggerUI();
 }
+app.MapHealthChecks("/api/health");
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();

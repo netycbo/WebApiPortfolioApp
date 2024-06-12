@@ -8,6 +8,7 @@ using System.Security.Claims;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
+using WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices;
 using WebApiPortfolioApp.API.Respons;
 using WebApiPortfolioApp.Data;
@@ -24,16 +25,15 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
         private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
         private readonly ISaveProductService _productSaveService;
-        private readonly IUserIdService _userIdService;
-        private readonly IProductFilterService _productFilterService;
 		private readonly ViewRender _viewRenderer;
         private readonly IFetchProductDetails _productDetailsFetcher;
         private readonly IAveragePriceComparator _averagePriceComparator;
+        private readonly IGetEmailService _getEmailService;
 
         public PriceCheckJob(IApiCall apiCall, IMapper mapper, IComparePrices comparePrices,  
-                            AppDbContext context, IProductFilterService productFilterService, IEmailService emailService,
-                            IUserIdService userIdService, ISaveProductService productSaveService, ViewRender viewRenderer,
-                            IFetchProductDetails productDetailsFetcher, IAveragePriceComparator averagePriceComparator)
+                            AppDbContext context, IEmailService emailService,
+                            ISaveProductService productSaveService, ViewRender viewRenderer,
+                            IFetchProductDetails productDetailsFetcher, IAveragePriceComparator averagePriceComparator, IGetEmailService getEmailService)
         {
             _apiCall = apiCall;
             _mapper = mapper;
@@ -42,9 +42,9 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
             _emailService = emailService;
             _productSaveService = productSaveService;
             _viewRenderer = viewRenderer;
-            _productFilterService = productFilterService;
             _productDetailsFetcher = productDetailsFetcher;
             _averagePriceComparator = averagePriceComparator;
+            _getEmailService = getEmailService;
         }
         public async Task Execute(IJobExecutionContext context)
         {
@@ -53,7 +53,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
             var product = await _productDetailsFetcher.FetchProductDetails(isJob, context.CancellationToken);
             var productAvgPrice = await _comparePrices.ComparePricesAsync(product.Data[1].Name);
             var isPriceBelowAverage = await _averagePriceComparator.IsPriceBelowAverageAsync(product.Data[1].Name);
-            var subscribedEmails = await GetSubscribedUserEmailsAsync();
+            var subscribedEmails = await _getEmailService.GetMailingList();
                 foreach (var email in subscribedEmails)
                 {
                     await _emailService.SendEmailAsync(new EmailRequest
@@ -63,14 +63,6 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
                         Body = isPriceBelowAverage ? emailContent : $"The average beer price is: {productAvgPrice}"
                     });
                 }
-        }
-
-        private async Task<List<string>> GetSubscribedUserEmailsAsync()
-        {
-            return await _context.Users
-                                 .Where(user => user.IsSubscribedToNewsLetter)
-                                 .Select(user => user.Email!)
-                                 .ToListAsync();
         }
     }
 }

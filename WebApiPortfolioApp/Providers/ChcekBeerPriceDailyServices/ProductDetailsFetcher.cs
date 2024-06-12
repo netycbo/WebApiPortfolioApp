@@ -13,17 +13,15 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
         private readonly IApiCall _apiCall;
         private readonly IProductFilterService _productFilterService;
         private readonly ISaveProductService _productSaveService;
-        private readonly IUserIdService _userIdService;
         private readonly IMapper _mapper;
         private readonly IDeserializeService _deserializeService;
 
         public ProductDetailsFetcher(IApiCall apiCall, IProductFilterService productFilterService, ISaveProductService productSaveService,
-            IUserIdService userIdService, IMapper mapper, IDeserializeService deserializeService)
+             IMapper mapper, IDeserializeService deserializeService)
         {
             _apiCall = apiCall;
             _productFilterService = productFilterService;
             _productSaveService = productSaveService;
-            _userIdService = userIdService;
             _mapper = mapper;
             _deserializeService = deserializeService;
         }

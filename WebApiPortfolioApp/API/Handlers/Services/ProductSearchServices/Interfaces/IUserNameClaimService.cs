@@ -1,7 +1,7 @@
 ﻿namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces
 {
-    public interface IShopNameValidator
+    public interface IUserNameClaimService
     {
-        string ValidateShopName(string shopName);
+        string GetUserName();
     }
 }

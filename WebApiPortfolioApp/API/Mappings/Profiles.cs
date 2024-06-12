@@ -37,13 +37,7 @@ namespace WebApiPortfolioApp.API.Mappings
                 .ConvertUsing(src => src.Data.Select(dto => new AddProductsToNewsLetterDto
                 {
                     ProductName = dto.Name,
-                    // mapowanie innych właściwości
                 }).ToList());
-
-
-
-
-
         }
     }
 }

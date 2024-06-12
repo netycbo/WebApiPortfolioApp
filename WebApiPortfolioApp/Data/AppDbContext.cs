@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using WebApiPortfolioApp.Data.Entinities;
 using WebApiPortfolioApp.Data.Entinities.Identity;
 using WebApiPortfolioApp.Providers;
@@ -18,7 +18,7 @@ namespace WebApiPortfolioApp.Data
 
         public DbSet<SearchHistory> SearchHistory { get; set; }
         public DbSet<ProductSubscription> ProductSubscriptions { get; set; }
-
+        
         public async Task<int> SaveChangesAsync()
         {
             var entries = ChangeTracker
@@ -36,8 +36,25 @@ namespace WebApiPortfolioApp.Data
                     ((AuditableEntity)entityEntry.Entity).CreatedBy = _userResolverService.GetUser();
                 }
             }
+
+            OnBeforeSaveChanges();
+
             return await base.SaveChangesAsync();
         }
+        private void OnBeforeSaveChanges()
+        {
+            var subscribeProductEntries = ChangeTracker.Entries<ProductSubscription>()
+                .Where(e => e.State == EntityState.Added);
+
+            foreach (var entry in subscribeProductEntries)
+            {
+                var user = Users.Find(entry.Entity.UserId);
+                if (user != null)
+                {
+                    user.IsSubscribedToNewsLetter = true;
+                    Entry(user).State = EntityState.Modified;
+                }
+            }
+        }
     }
-    
 }

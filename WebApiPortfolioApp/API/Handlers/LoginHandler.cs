@@ -42,7 +42,7 @@ namespace WebApiPortfolioApp.API.Handlers
             }
             
             var roles = await _userManager.GetRolesAsync(user);
-            var token = await GenerateJwtToken(user, roles);
+            var token = GenerateJwtToken(user, roles);
 
             var userDto = _mapper.Map<LoginDto>(user);
             userDto.UserRole = roles.ToList();
@@ -52,7 +52,7 @@ namespace WebApiPortfolioApp.API.Handlers
                 Token = token
             };
         }
-        private async Task<string> GenerateJwtToken(ApplicationUser user, IList<string> roles)
+        private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
@@ -61,7 +61,6 @@ namespace WebApiPortfolioApp.API.Handlers
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                
             };
             
             foreach (var role in roles)

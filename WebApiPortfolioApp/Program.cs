@@ -104,6 +104,7 @@ builder.Services.AddScoped<IFetchProductDetails,ProductDetailsFetcher>();
 builder.Services.AddScoped<IAveragePriceComparator, AveragePriceComperator>();
 builder.Services.AddScoped<IShopNameValidator, ShopNameValidator>();
 builder.Services.AddScoped<IDeserializeService, DeserializeService>();
+builder.Services.AddScoped<IUserNameClaimService, UserNameClaimService>();
 builder.Services.AddScoped<ISaveToProductSubscriptionService, SaveToProductSubscriptionService>();
 builder.Services.AddSingleton<ShopNameList>();
 builder.Services.AddSingleton(provider =>

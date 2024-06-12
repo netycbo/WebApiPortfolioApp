@@ -9,10 +9,11 @@ using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices;
+using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
 using WebApiPortfolioApp.ExeptionsHandling.Exeptions;
-namespace WebApiPortfolioApp
+namespace WebApiPortfolioApp.API.Handlers
 {
     public class AddProductsToNewsLetterHandler : IRequestHandler<AddProductsToNewsLetterRequest, AddProductsToNewsLetterRespons>
     {
@@ -22,9 +23,11 @@ namespace WebApiPortfolioApp
         private readonly ISaveToProductSubscriptionService _productSaveService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IDeserializeService _deserializeService;
+        private readonly IUserNameClaimService _userNameClaimService;
 
         public AddProductsToNewsLetterHandler(IApiCall apiCall, IMapper mapper, IUserIdService userIdService,
-            ISaveToProductSubscriptionService productSaveService, IHttpContextAccessor httpContextAccessor, IDeserializeService deserializeService)
+            ISaveToProductSubscriptionService productSaveService, IHttpContextAccessor httpContextAccessor,
+            IDeserializeService deserializeService, IUserNameClaimService userNameClaimService)
         {
             _apiCall = apiCall;
             _mapper = mapper;
@@ -32,6 +35,7 @@ namespace WebApiPortfolioApp
             _productSaveService = productSaveService;
             _httpContextAccessor = httpContextAccessor;
             _deserializeService = deserializeService;
+            _userNameClaimService = userNameClaimService;
         }
 
         public async Task<AddProductsToNewsLetterRespons> Handle(AddProductsToNewsLetterRequest request, CancellationToken cancellationToken)
@@ -54,10 +58,9 @@ namespace WebApiPortfolioApp
 
                 var mappedProducts = _mapper.Map<List<AddProductsToNewsLetterDto>>(rawProductResponse);
                 var userIdClaim = _userIdService.GetUserId();
-                var userName = _httpContextAccessor.HttpContext.User.Claims
-                             .FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+                var userNameClaim = _userNameClaimService.GetUserName();
 
-                await _productSaveService.SaveToProductSubscriptionAsync(mappedProducts, userIdClaim, userName);
+                await _productSaveService.SaveToProductSubscriptionAsync(mappedProducts, userIdClaim, userNameClaim);
                 return new AddProductsToNewsLetterRespons { Data = mappedProducts };
             }
             catch (CantDeserializeExeption)

@@ -31,17 +31,19 @@ namespace WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices
                 var productSubscriptions = products.Select(product => new ProductSubscription
                 {
                     ProductName = product.ProductName ?? string.Empty,
-                    Created = DateTime.UtcNow
-                    
+                    Created = DateTime.UtcNow,
+                    UserId = userId,
+                    UserName = userName
                    
                 }).ToList();
-
+                
                 _context.ProductSubscriptions.AddRange(productSubscriptions);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while saving product subscriptions.");
+                _logger.LogError("Stack Trace: {StackTrace}", ex.StackTrace);
                 throw;
             }
         }

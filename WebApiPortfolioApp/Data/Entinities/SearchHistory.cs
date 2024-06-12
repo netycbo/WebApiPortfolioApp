@@ -6,7 +6,7 @@ namespace WebApiPortfolioApp.Data.Entinities
     public class SearchHistory : AuditableEntity
     {
         public int Id { get; set; }
-        public int UserId { get; set; } 
+        public string UserId { get; set; } 
         public string SearchString { get; set; }
         public DateTime SearchDate { get; set; }
         public string Shop { get; set; }

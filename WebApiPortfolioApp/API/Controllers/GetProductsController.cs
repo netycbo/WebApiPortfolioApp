@@ -31,5 +31,12 @@ namespace WebApiPortfolioApp.API.Controllers
             var result = await _mediator.Send(request);
             return Ok(result);
         }
+
+        [HttpGet("SingUpForNewsletter")]
+        public async Task<IActionResult> SingUp([FromQuery] AddProductsToNewsLetterRequest request)
+        {
+            var result = await _mediator.Send(request);
+            return Ok(result);
+        }
     }
 }

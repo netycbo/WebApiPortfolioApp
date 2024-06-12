@@ -4,6 +4,7 @@ using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.API.Respons;
 using AutoMapper;
 using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces;
+using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
 {
@@ -14,14 +15,17 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
         private readonly ISaveProductService _productSaveService;
         private readonly IUserIdService _userIdService;
         private readonly IMapper _mapper;
+        private readonly IDeserializeService _deserializeService;
 
-        public ProductDetailsFetcher(IApiCall apiCall, IProductFilterService productFilterService, ISaveProductService productSaveService, IUserIdService userIdService, IMapper mapper)
+        public ProductDetailsFetcher(IApiCall apiCall, IProductFilterService productFilterService, ISaveProductService productSaveService,
+            IUserIdService userIdService, IMapper mapper, IDeserializeService deserializeService)
         {
             _apiCall = apiCall;
             _productFilterService = productFilterService;
             _productSaveService = productSaveService;
             _userIdService = userIdService;
             _mapper = mapper;
+            _deserializeService = deserializeService;
         }
 
         public async Task<RawJsonDtoResponse> FetchProductDetails(bool isJob, CancellationToken cancellationToken)
@@ -34,8 +38,8 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
                 if (restResponse.IsSuccessful && !string.IsNullOrEmpty(restResponse.Content))
                 {
                     Console.WriteLine($"Response Content: {restResponse.Content}");
-                    var serializer = new JsonSerializer();
-                    var rawProductResponse = serializer.Deserialize<RawJsonDtoResponse>(new JsonTextReader(new StringReader(restResponse.Content)));
+                    
+                    var rawProductResponse = _deserializeService.Deserialize<RawJsonDtoResponse>(restResponse.Content);
                     if (rawProductResponse == null || rawProductResponse.Data == null)
                     {
                         return new RawJsonDtoResponse();
@@ -44,7 +48,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
 
                     var filteredProducts = await _productFilterService.FilterProducts(mappedProducts, "Hansa Mango Ipa 0,5");
 
-                    await _productSaveService.SaveProductsAsync(filteredProducts, -1, true);
+                    await _productSaveService.SaveProductsAsync(filteredProducts, "-1", true);
 
                     return new RawJsonDtoResponse { Data = filteredProducts };
                 }

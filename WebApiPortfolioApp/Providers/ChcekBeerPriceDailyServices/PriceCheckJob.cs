@@ -68,7 +68,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
         private async Task<List<string>> GetSubscribedUserEmailsAsync()
         {
             return await _context.Users
-                                 .Where(user => user.IsSubscribedToLowBeerPriceAletr)
+                                 .Where(user => user.IsSubscribedToNewsLetter)
                                  .Select(user => user.Email!)
                                  .ToListAsync();
         }

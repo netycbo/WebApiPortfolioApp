@@ -5,6 +5,7 @@ using Quartz;
 using RestSharp;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services;
+using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
@@ -20,9 +21,11 @@ namespace WebApiPortfolioApp.API.Handlers
         private readonly ISaveProductService _productSaveService;
         private readonly IUserIdService _userIdService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IDeserializeService _deserializeService;
 
         public ProductSearchHandler(IApiCall apiCall, IMapper mapper, IProductFilterService productFilterService, 
-            ISaveProductService productSaveService, IHttpContextAccessor httpContextAccessor, IUserIdService userIdService)
+            ISaveProductService productSaveService, IHttpContextAccessor httpContextAccessor, IUserIdService userIdService,
+            IDeserializeService deserializeService)
         {
             _apiCall = apiCall;
             _mapper = mapper;
@@ -30,6 +33,7 @@ namespace WebApiPortfolioApp.API.Handlers
             _productSaveService = productSaveService;
             _httpContextAccessor = httpContextAccessor;
             _userIdService = userIdService;
+            _deserializeService = deserializeService;
         }
         public async Task<RawJsonDtoResponse> Handle(ProductSearchRequest request, CancellationToken cancellationToken)
         {
@@ -44,8 +48,7 @@ namespace WebApiPortfolioApp.API.Handlers
 
             try
             {
-                var serializer = new JsonSerializer();
-                var rawProductResponse = serializer.Deserialize<RawJsonDtoResponse>(new JsonTextReader(new StringReader(response.Content)));
+                var rawProductResponse = _deserializeService.Deserialize<RawJsonDtoResponse>(response.Content);
 
                 if (rawProductResponse == null || rawProductResponse.Data == null)
                 {

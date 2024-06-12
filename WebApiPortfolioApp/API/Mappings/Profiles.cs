@@ -14,7 +14,7 @@ namespace WebApiPortfolioApp.API.Mappings
             CreateMap<ApplicationUser, RegisteringDto>()
                     .ForMember(x => x.Name, x => x.MapFrom(y => y.UserName))
                     .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                    .ForMember(dest => dest.BeerAlert, opt => opt.MapFrom(src => src.IsSubscribedToLowBeerPriceAletr));
+                    .ForMember(dest => dest.BeerAlert, opt => opt.MapFrom(src => src.IsSubscribedToNewsLetter));
 
 
             CreateMap<RegisteringRequest, RegisteringDto>()
@@ -25,13 +25,22 @@ namespace WebApiPortfolioApp.API.Mappings
 
             CreateMap<RegisteringRequest, ApplicationUser>()
                    .ForMember(x => x.UserName, x => x.MapFrom(y => y.Name))
-                   .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email));
+                   .ForMember(x => x.Email, x => x.MapFrom(src => src.Email));
             CreateMap<ApplicationUser, LoginDto>()
                 .ForMember(x => x.Name, x => x.MapFrom(y => y.UserName));
             CreateMap<LoginRequest, LoginDto>();
             CreateMap<RawJsonDtoResponse, List<RawJsonDto>>();
             CreateMap<string, ProductNamesDto>()
-            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src));
+            .ForMember(x => x.ProductName, x => x.MapFrom(x => x));
+            CreateMap<RawJsonDto, AddProductsToNewsLetterDto>();
+            CreateMap<RawJsonDtoResponse, List<AddProductsToNewsLetterDto>>()
+                .ConvertUsing(src => src.Data.Select(dto => new AddProductsToNewsLetterDto
+                {
+                    ProductName = dto.Name,
+                    // mapowanie innych właściwości
+                }).ToList());
+
+
 
 
 

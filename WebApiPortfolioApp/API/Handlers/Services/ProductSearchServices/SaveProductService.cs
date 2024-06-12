@@ -17,18 +17,19 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
             _context = context;
             
         }
-        public async Task SaveProductsAsync(List<RawJsonDto> products, int userId, bool isJob)
+        public async Task SaveProductsAsync<T>(List<T> products, string userId, bool isJob) where T : class
         {
             var searchHistory = products.Select(product =>
             {
-                var priceHistory = product.Price_History.FirstOrDefault();
+                dynamic dynamicProduct = product;
+                var priceHistory = dynamicProduct.product.Price_History.FirstOrDefault();
                 return new SearchHistory
                 {
-                    UserId = isJob ? -1 : userId,
+                    UserId = isJob ? "-1" : userId,
                     IsJob = isJob,
-                    SearchString = product.Name ?? string.Empty,
+                    SearchString = dynamicProduct.product.Name ?? string.Empty,
                     SearchDate = DateTime.UtcNow,
-                    Shop = product?.Store?.Name ?? string.Empty,
+                    Shop = dynamicProduct.product?.Store?.Name ?? string.Empty,
                     Price = priceHistory?.Price ?? 0,
                     Created = DateTime.UtcNow,
                 };
@@ -37,5 +38,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
             _context.SearchHistory.AddRange(searchHistory);
             await _context.SaveChangesAsync();
         }
+
+       
     }
 }

@@ -4,6 +4,7 @@ namespace WebApiPortfolioApp.Data.Entinities.Identity
 {
     public class ApplicationUser : IdentityUser
     {
-        public bool IsSubscribedToLowBeerPriceAletr { get; set; }
+        public bool IsSubscribedToNewsLetter { get; set; }
+        public virtual ICollection<ProductSubscription> ProductSubscriptions { get; set; }
     }
 }

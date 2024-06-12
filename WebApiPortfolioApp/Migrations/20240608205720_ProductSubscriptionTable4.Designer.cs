@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApiPortfolioApp.Data;
 
@@ -11,9 +12,11 @@ using WebApiPortfolioApp.Data;
 namespace WebApiPortfolioApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240608205720_ProductSubscriptionTable4")]
+    partial class ProductSubscriptionTable4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,17 +245,17 @@ namespace WebApiPortfolioApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
+                    b.Property<string>("UserIdId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("UserNameId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserIdId");
+
+                    b.HasIndex("UserNameId");
 
                     b.ToTable("ProductSubscriptions");
                 });
@@ -294,9 +297,8 @@ namespace WebApiPortfolioApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -356,18 +358,17 @@ namespace WebApiPortfolioApp.Migrations
 
             modelBuilder.Entity("WebApiPortfolioApp.Data.Entinities.ProductSubscription", b =>
                 {
-                    b.HasOne("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", "User")
-                        .WithMany("ProductSubscriptions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", "UserId")
+                        .WithMany()
+                        .HasForeignKey("UserIdId");
 
-                    b.Navigation("User");
-                });
+                    b.HasOne("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", "UserName")
+                        .WithMany()
+                        .HasForeignKey("UserNameId");
 
-            modelBuilder.Entity("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", b =>
-                {
-                    b.Navigation("ProductSubscriptions");
+                    b.Navigation("UserId");
+
+                    b.Navigation("UserName");
                 });
 #pragma warning restore 612, 618
         }

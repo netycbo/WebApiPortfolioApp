@@ -2,6 +2,6 @@
 {
     public interface IUserIdService
     {
-        int GetUserId();
+        string GetUserId();
     }
 }

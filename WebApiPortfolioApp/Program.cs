@@ -23,6 +23,8 @@ using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using WebApiPortfolioApp.HealthChecks;
 using WebApiPortfolioApp.API;
+using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
+using WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,6 +103,8 @@ builder.Services.AddScoped<IComparePrices, ComparePrices>();
 builder.Services.AddScoped<IFetchProductDetails,ProductDetailsFetcher>();
 builder.Services.AddScoped<IAveragePriceComparator, AveragePriceComperator>();
 builder.Services.AddScoped<IShopNameValidator, ShopNameValidator>();
+builder.Services.AddScoped<IDeserializeService, DeserializeService>();
+builder.Services.AddScoped<ISaveToProductSubscriptionService, SaveToProductSubscriptionService>();
 builder.Services.AddSingleton<ShopNameList>();
 builder.Services.AddSingleton(provider =>
 {
@@ -132,7 +136,7 @@ if (app.Environment.IsDevelopment())
    app.UseSwagger();
    app.UseSwaggerUI();
 }
-app.MapHealthChecks("/api/health");
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();

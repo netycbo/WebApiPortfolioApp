@@ -18,7 +18,8 @@ namespace WebApiPortfolioApp.Data
 
         public DbSet<SearchHistory> SearchHistory { get; set; }
         public DbSet<ProductSubscription> ProductSubscriptions { get; set; }
-        
+        public DbSet<TemporaryProduct> TemporaryProducts { get; set; } 
+
         public async Task<int> SaveChangesAsync()
         {
             var entries = ChangeTracker

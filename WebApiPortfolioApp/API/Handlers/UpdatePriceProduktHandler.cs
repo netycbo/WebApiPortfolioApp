@@ -22,17 +22,15 @@ namespace WebApiPortfolioApp.API.Handlers
         private readonly IApiCall _apiCall;
         private readonly IMapper _mapper;
         private readonly IDeserializeService _deserializeService;
-        private readonly TemporaryDbContext _temporaryDbContext;
         private readonly ISaveProductService _productSaveService;
 
         public UpdatePriceProduktHandler(AppDbContext context, IApiCall apiCall, IMapper mapper,
-            IDeserializeService deserializeService, TemporaryDbContext temporaryDbContext, ISaveProductService productSaveService)
+            IDeserializeService deserializeService, ISaveProductService productSaveService)
         {
             _context = context;
             _apiCall = apiCall;
             _mapper = mapper;
             _deserializeService = deserializeService;
-            _temporaryDbContext = temporaryDbContext;
             _productSaveService = productSaveService;
         }
         public async Task<UpdatePriceProduktRespons> Handle(UpdatePriceProduktRequest request, CancellationToken cancellationToken)
@@ -67,35 +65,34 @@ namespace WebApiPortfolioApp.API.Handlers
                         ProductName = rawDto.Name,
                         Price = rawDto.Current_Price
                     };
-                    Console.WriteLine($"Mapped UpdatePriceProduktDto: ProductName = {updateProductDto.ProductName}, Price = {updateProductDto.Price}");
+                    
                     updateResponses.Add(updateProductDto);
                     var tempProduct = _mapper.Map<TemporaryProduct>(updateProductDto);
-                    Console.WriteLine($"Mapped TemporaryProduct: Name = {tempProduct.Name}, Price = {tempProduct.Price}");
+                 
                     await _productSaveService.SaveTemporaryProductsAsync(new List<TemporaryProduct> { tempProduct });
                 }
-
-                foreach (var tempProduct in _temporaryDbContext.TemporaryProducts)
+                var temporaryProducts = await _context.TemporaryProducts.ToListAsync();
+                Console.WriteLine($"Number of temporary products: {temporaryProducts.Count}");
+                foreach (var tempProduct in temporaryProducts)
                 {
                     var productToUpdate = await _context.ProductSubscriptions.FirstOrDefaultAsync(p => p.ProductName == tempProduct.Name);
-
+                    if (productToUpdate == null)
+                    {
+                        continue;
+                    }
                     if (productToUpdate != null)
                     {
-                        var searchHistoryEntry = await _context.SearchHistory.FirstOrDefaultAsync(sh =>
-                            sh.UserId == productToUpdate.UserName && 
-                            sh.SearchString == productToUpdate.ProductName);
-
-                        if (searchHistoryEntry != null)
+                        if (productToUpdate.Price < tempProduct.Price)
                         {
-                            if (searchHistoryEntry.Price < tempProduct.Price)
-                            {
-                                searchHistoryEntry.Price = tempProduct.Price;
-                            }
+                            productToUpdate.Price = tempProduct.Price;
                         }
                     }
                 }
                 _context.SaveChanges();
-                _temporaryDbContext.TemporaryProducts.RemoveRange(_temporaryDbContext.TemporaryProducts); 
+                _context.TemporaryProducts.RemoveRange(temporaryProducts);
             }
+            _context.SaveChanges();
+        
             return new UpdatePriceProduktRespons
             {
                 Data = updateResponses

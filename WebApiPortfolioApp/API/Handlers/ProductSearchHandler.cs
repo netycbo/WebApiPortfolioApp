@@ -45,7 +45,6 @@ namespace WebApiPortfolioApp.API.Handlers
             { 
                 throw new FailedToFetchDataExeption("Failed to fetch data");
             }
-
             try
             {
                 var rawProductResponse = _deserializeService.Deserialize<RawJsonDtoResponse>(response.Content);

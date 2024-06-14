@@ -2,6 +2,6 @@
 {
     public interface IShopNameValidator
     {
-        string ValidateShopName(string shopName);
+        Task<string> ValidateShopName(string shopName);
     }
 }

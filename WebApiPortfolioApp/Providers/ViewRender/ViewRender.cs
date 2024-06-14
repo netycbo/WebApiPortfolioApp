@@ -62,7 +62,6 @@ namespace WebApiPortfolioApp.Providers.ViewRender
             var result = engine.FindView(actionContext, viewName, false);
             if (!result.Success)
             {
-                // Log result.SearchedLocations
                 var searchedLocations = string.Join(", ", result.SearchedLocations);
                 Console.WriteLine("Wyszukiwane lokalizacje: " + searchedLocations);
             }

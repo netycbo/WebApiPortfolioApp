@@ -3,6 +3,7 @@ using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.Data;
 using WebApiPortfolioApp.Data.Entinities;
+using WebApiPortfolioApp.Migrations.TemporaryDb;
 using WebApiPortfolioApp.Providers;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
@@ -10,11 +11,13 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
     public class SaveProductService : ISaveProductService
     {
         private readonly AppDbContext _context;
+        private readonly TemporaryDbContext _temporaryDbContext;
        
 
-        public SaveProductService(AppDbContext context, IHttpContextAccessor httpContextAccessor)
+        public SaveProductService(AppDbContext context, IHttpContextAccessor httpContextAccessor, TemporaryDbContext temporaryDbContext)
         {
             _context = context;
+            _temporaryDbContext = temporaryDbContext;
             
         }
         public async Task SaveProductsAsync<T>(List<T> products, string userId, bool isJob) where T : class
@@ -39,6 +42,19 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
             await _context.SaveChangesAsync();
         }
 
-       
+        public async Task SaveTemporaryProductsAsync(IEnumerable<TemporaryProduct> products)
+        {
+            var temporaryProducts = products.Select(product =>
+            {
+                return new TemporaryProduct
+                {
+                    Price = product.Price,
+                    Name = product.Name
+                };
+            }).ToList();
+
+            _temporaryDbContext.TemporaryProducts.AddRange(temporaryProducts);
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -51,7 +51,7 @@ namespace WebApiPortfolioApp.API.Handlers
 
         public async Task<AddProductsToNewsLetterRespons> Handle(AddProductsToNewsLetterRequest request, CancellationToken cancellationToken)
         {
-            var emailContent = await _viewRenderer.RenderToStringAsync("SendEmail/ConfirmationEmail/WelcomToNewsLetter", new { ProductName = request.SearchProduct });
+            var emailContent = await _viewRenderer.RenderToStringAsync("SendEmail/NewsLetter/WelcomToNewsLetter", new { ProductName = request.SearchProduct });
             var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct, 1);
             var response = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
             Console.WriteLine($"Response Content: {response.Content}");

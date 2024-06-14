@@ -24,6 +24,12 @@ namespace WebApiPortfolioApp.API.Controllers
             var result = await _mediator.Send(request);
             return Ok(result);
         }
+        [HttpGet("CompareProducts")]
+        public async Task<IActionResult> CompareProducts([FromQuery] UpdatePriceProduktRequest request)
+        {
+            var result = await _mediator.Send(request);
+            return Ok(result);
+        }
 
         [HttpGet("GetAllProducts")]
         public async Task<IActionResult> GetAllroducts([FromQuery] GetAllProductsNameRequest request)

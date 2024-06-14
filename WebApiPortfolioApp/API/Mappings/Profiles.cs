@@ -3,6 +3,7 @@ using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
+using WebApiPortfolioApp.Data.Entinities;
 using WebApiPortfolioApp.Data.Entinities.Identity;
 
 namespace WebApiPortfolioApp.API.Mappings
@@ -32,7 +33,17 @@ namespace WebApiPortfolioApp.API.Mappings
             CreateMap<RawJsonDtoResponse, List<RawJsonDto>>();
             CreateMap<string, ProductNamesDto>()
             .ForMember(x => x.ProductName, x => x.MapFrom(x => x));
-            CreateMap<RawJsonDto, AddProductsToNewsLetterDto>();
+            CreateMap<RawJsonDtoResponse, UpdatePriceProduktDto>();
+            CreateMap<TemporaryProduct, UpdatePriceProduktDto>();
+            CreateMap<RawJsonDto, AddProductsToNewsLetterDto>()
+                .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name));
+            CreateMap<RawJsonDto, UpdatePriceProduktDto>()
+                .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price));
+
+            CreateMap<List<RawJsonDto>, UpdatePriceProduktDto>();
+               
+            CreateMap<UpdatePriceProduktDto, TemporaryProduct>()
+                .ForMember(x=>x.Name, x=>x.MapFrom(y=>y.ProductName));
             CreateMap<RawJsonDtoResponse, List<AddProductsToNewsLetterDto>>()
                 .ConvertUsing(src => src.Data.Select(dto => new AddProductsToNewsLetterDto
                 {

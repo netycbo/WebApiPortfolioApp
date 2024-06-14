@@ -9,13 +9,13 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
         {
             this.names = names;
         }
-        public string ValidateShopName(string shopName)
+        public Task<string> ValidateShopName(string shopName)
         {
             var replaceWhitespaces = shopName.Replace(" ", "");
             var matchingNames = names.FirstOrDefault(name =>
                 string.Equals(name, replaceWhitespaces, StringComparison.OrdinalIgnoreCase));
 
-            return  matchingNames ?? "No matching name found";
+            return  Task.FromResult(matchingNames ?? "No matching name found");
 
         }
     }

@@ -25,12 +25,16 @@ using WebApiPortfolioApp.HealthChecks;
 using WebApiPortfolioApp.API;
 using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 using WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices;
+using System.Configuration;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<TemporaryDbContext>(options =>
+                options.UseSqlite(builder.Configuration.GetConnectionString("TemporaryDbConnection")));
 builder.Services.AddControllers();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
     options.SignIn.RequireConfirmedAccount = false;
@@ -105,6 +109,7 @@ builder.Services.AddScoped<IAveragePriceComparator, AveragePriceComperator>();
 builder.Services.AddScoped<IShopNameValidator, ShopNameValidator>();
 builder.Services.AddScoped<IDeserializeService, DeserializeService>();
 builder.Services.AddScoped<IUserNameClaimService, UserNameClaimService>();
+builder.Services.AddScoped<IGetEmailService, GetEmailService>();
 builder.Services.AddScoped<ISaveToProductSubscriptionService, SaveToProductSubscriptionService>();
 builder.Services.AddSingleton<ShopNameList>();
 builder.Services.AddSingleton(provider =>

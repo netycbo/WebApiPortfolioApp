@@ -14,7 +14,7 @@
             var httpContext = _context.HttpContext;
             if (httpContext == null || httpContext.User == null || !httpContext.User.Identity.IsAuthenticated)
             {
-                return null; // Albo inna domyślna wartość
+                return null;
             }
 
             return httpContext.User.Identity.Name;

@@ -12,6 +12,7 @@ namespace WebApiPortfolioApp.Data.Entinities
         public string UserName { get; set; }
         public string ProductName { get; set; }
         public decimal Price { get; set; }
+        public string Shop { get; set; }
         public DateTime Created { get; set; } = DateTime.UtcNow;
         public string UserId { get; set; }
         [ForeignKey("UserId")]

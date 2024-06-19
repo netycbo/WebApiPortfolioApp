@@ -68,7 +68,6 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<UserResolverService>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<RegisteringHandler>());
 builder.Services.AddAutoMapper(typeof(Profiles).GetTypeInfo().Assembly, typeof(Profiles).Assembly);
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));

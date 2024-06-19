@@ -19,14 +19,11 @@ namespace WebApiPortfolioApp.API.Handlers
             _mapper = mapper;
             _dbContext = dbContext;
         }
-
         public async Task<GetAllProductsNameRespons> Handle(GetAllProductsNameRequest request, CancellationToken cancellationToken)
         {
             var searchStrings = await _dbContext.SearchHistory
                 .Select(sh => sh.SearchString)
                 .ToListAsync(cancellationToken);
-
-            // Normalizing the product names by sorting words within each name
             var productNameCounts = new Dictionary<string, int>();
             foreach (var productName in searchStrings)
             {
@@ -40,11 +37,9 @@ namespace WebApiPortfolioApp.API.Handlers
                     productNameCounts.Add(normalizedProductName, 1);
                 }
             }
-
-            // Mapping the dictionary to a list of ProductNamesDto, including the count
             var productNames = productNameCounts.Select(pn => new ProductNamesDto
             {
-                ProductName = pn.Key, // This will be the normalized name
+                ProductName = pn.Key, 
                 Quantity = pn.Value
             }).ToList();
 

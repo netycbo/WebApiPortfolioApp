@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 using WebApiPortfolioApp.Data.Entinities;
 using WebApiPortfolioApp.Data.Entinities.Identity;
 using WebApiPortfolioApp.Providers;
@@ -9,11 +10,12 @@ namespace WebApiPortfolioApp.Data
 {
     public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
-        private readonly UserResolverService _userResolverService;
+        private readonly IUserNameClaimService _userNameClaimServices;
 
-        public AppDbContext(DbContextOptions<AppDbContext> options, UserResolverService userService) : base(options)
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, IUserNameClaimService userNameClaimServices) : base(options)
         {
-            _userResolverService = userService;
+            _userNameClaimServices = userNameClaimServices;
         }
 
         public DbSet<SearchHistory> SearchHistory { get; set; }
@@ -29,12 +31,12 @@ namespace WebApiPortfolioApp.Data
             foreach (var entityEntry in entries)
             {
                 ((AuditableEntity)entityEntry.Entity).LastModified = DateTime.UtcNow;
-                ((AuditableEntity)entityEntry.Entity).LastModifiedBy = _userResolverService.GetUser();
+                ((AuditableEntity)entityEntry.Entity).LastModifiedBy = _userNameClaimServices.GetUserName();
 
                 if (entityEntry.State == EntityState.Added)
                 {
                     ((AuditableEntity)entityEntry.Entity).Created = DateTime.UtcNow;
-                    ((AuditableEntity)entityEntry.Entity).CreatedBy = _userResolverService.GetUser();
+                    ((AuditableEntity)entityEntry.Entity).CreatedBy = _userNameClaimServices.GetUserName();
                 }
             }
 

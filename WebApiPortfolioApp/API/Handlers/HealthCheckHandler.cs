@@ -17,7 +17,6 @@ namespace WebApiPortfolioApp.API.Handlers
             _apiHealthCheck = apiHealthCheck;
             _databaseHealthCheck = databaseHealthCheck;
         }
-
         public async  Task<HealthCheckRespons> Handle(HealthCheckRequest request, CancellationToken cancellationToken)
         {
             var apiResult = await _apiHealthCheck.CheckHealthAsync(new HealthCheckContext(), cancellationToken);

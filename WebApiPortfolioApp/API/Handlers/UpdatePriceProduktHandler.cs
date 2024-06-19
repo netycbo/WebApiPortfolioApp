@@ -33,6 +33,7 @@ namespace WebApiPortfolioApp.API.Handlers
             _deserializeService = deserializeService;
             _productSaveService = productSaveService;
         }
+
         public async Task<UpdatePriceProduktRespons> Handle(UpdatePriceProduktRequest request, CancellationToken cancellationToken)
         {
             var products = await _context.ProductSubscriptions
@@ -44,7 +45,7 @@ namespace WebApiPortfolioApp.API.Handlers
 
             foreach (var product in products)
             {
-                var restRequest = _apiCall.CreateProductSearchRequest(product, 1);
+                var restRequest = _apiCall.CreateProductSearchRequest(product, 10);
                 var response = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
                 Console.WriteLine($"Response Content: {response.Content}");
 
@@ -58,21 +59,40 @@ namespace WebApiPortfolioApp.API.Handlers
                 {
                     continue;
                 }
-                foreach (var rawDto in rawProductResponse.Data)
+
+                var filteredData = rawProductResponse.Data
+                    .Where(d => d.Name == product && d.Current_Price != null && d.Current_Price != 0)
+                    .ToList();
+                var groupedData = filteredData
+                    .GroupBy(d => d.Name)
+                    .Select(g => g.OrderBy(d => d.Current_Price).FirstOrDefault())
+                    .ToList();
+
+                foreach (var rawDto in groupedData)
                 {
                     var updateProductDto = new UpdatePriceProduktDto
                     {
                         ProductName = rawDto.Name,
-                        Price = rawDto.Current_Price
+                        Price = rawDto.Current_Price,
+                        Store = rawDto.Store
                     };
-                    
-                    updateResponses.Add(updateProductDto);
+
                     var tempProduct = _mapper.Map<TemporaryProduct>(updateProductDto);
-                 
-                    await _productSaveService.SaveTemporaryProductsAsync(new List<TemporaryProduct> { tempProduct });
+                    updateResponses.Add(updateProductDto);
+                    Console.WriteLine($"TemporaryProduct: Name = {tempProduct.Name}, Price = {tempProduct.Price}");
+
+                    try
+                    {
+                        await _productSaveService.SaveTemporaryProductsAsync(new List<TemporaryProduct> { tempProduct });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error saving temporary product: {ex.Message}");
+                        throw;
+                    }
                 }
+
                 var temporaryProducts = await _context.TemporaryProducts.ToListAsync();
-                Console.WriteLine($"Number of temporary products: {temporaryProducts.Count}");
                 foreach (var tempProduct in temporaryProducts)
                 {
                     var productToUpdate = await _context.ProductSubscriptions.FirstOrDefaultAsync(p => p.ProductName == tempProduct.Name);
@@ -80,19 +100,18 @@ namespace WebApiPortfolioApp.API.Handlers
                     {
                         continue;
                     }
-                    if (productToUpdate != null)
+
+                    if (productToUpdate.Price < tempProduct.Price)
                     {
-                        if (productToUpdate.Price < tempProduct.Price)
-                        {
-                            productToUpdate.Price = tempProduct.Price;
-                        }
+                        productToUpdate.Price = tempProduct.Price;
                     }
                 }
+
                 _context.SaveChanges();
                 _context.TemporaryProducts.RemoveRange(temporaryProducts);
             }
             _context.SaveChanges();
-        
+
             return new UpdatePriceProduktRespons
             {
                 Data = updateResponses

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WebApiPortfolioApp.Data.Entinities;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
+using WebApiPortfolioApp.API.DTOs.Helpers;
 
 namespace WebApiPortfolioApp.API.Handlers
 {
@@ -59,13 +60,13 @@ namespace WebApiPortfolioApp.API.Handlers
                 {
                     continue;
                 }
-
-                var filteredData = rawProductResponse.Data
+                var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
+                var filteredData = mappedProducts
                     .Where(d => d.Name == product && d.Current_Price != null && d.Current_Price != 0)
                     .ToList();
                 var groupedData = filteredData
                     .GroupBy(d => d.Name)
-                    .Select(g => g.OrderBy(d => d.Current_Price).FirstOrDefault())
+                    .Select(g => g.OrderBy(d => d.Current_Price).First())
                     .ToList();
 
                 foreach (var rawDto in groupedData)
@@ -74,13 +75,11 @@ namespace WebApiPortfolioApp.API.Handlers
                     {
                         ProductName = rawDto.Name,
                         Price = rawDto.Current_Price,
-                        Store = rawDto.Store
+                        Store = new StoreName { Name = rawDto.Store?.Name }
                     };
 
                     var tempProduct = _mapper.Map<TemporaryProduct>(updateProductDto);
                     updateResponses.Add(updateProductDto);
-                    Console.WriteLine($"TemporaryProduct: Name = {tempProduct.Name}, Price = {tempProduct.Price}");
-
                     try
                     {
                         await _productSaveService.SaveTemporaryProductsAsync(new List<TemporaryProduct> { tempProduct });
@@ -101,7 +100,7 @@ namespace WebApiPortfolioApp.API.Handlers
                         continue;
                     }
 
-                    if (productToUpdate.Price < tempProduct.Price)
+                    if (productToUpdate.Price > tempProduct.Price)
                     {
                         productToUpdate.Price = tempProduct.Price;
                     }

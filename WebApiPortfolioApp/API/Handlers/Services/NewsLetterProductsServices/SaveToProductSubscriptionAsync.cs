@@ -5,6 +5,8 @@ using WebApiPortfolioApp.Data;
 using WebApiPortfolioApp.Data.Entinities;
 using Microsoft.Extensions.Logging;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices;
+using WebApiPortfolioApp.API.DTOs.Helpers;
+using Newtonsoft.Json;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices
 {
@@ -28,22 +30,27 @@ namespace WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices
         {
             try
             {
-                var productSubscriptions = products.Select(product => new ProductSubscription
+                var productSubscriptions = products.Select(products => new ProductSubscription
                 {
-                    ProductName = product.ProductName ?? string.Empty,
+                    ProductName = products.ProductName ?? string.Empty,
                     Created = DateTime.UtcNow,
                     UserId = userId,
-                    UserName = userName
-                   
+                    UserName = userName,
+                    Shop = products.Store,
+                    Price = products.Price
+
                 }).ToList();
-                
+                Console.WriteLine($"ProductSubscription: {JsonConvert.SerializeObject(productSubscriptions)}");
+
                 _context.ProductSubscriptions.AddRange(productSubscriptions);
+
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while saving product subscriptions.");
                 _logger.LogError("Stack Trace: {StackTrace}", ex.StackTrace);
+
                 throw;
             }
         }

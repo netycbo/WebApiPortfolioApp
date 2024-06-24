@@ -1,9 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Quartz;
-using RestSharp;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services;
 using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
@@ -39,75 +36,41 @@ namespace WebApiPortfolioApp.API.Handlers
 
         public async Task<RawJsonDtoResponse> Handle(ProductSearchRequest request, CancellationToken cancellationToken)
         {
-            var initialNumberOfResults = request.NumberOfResults;
-            var maxRetries = 5;
-            var retries = 0;
-            List<JToken> filteredData = new List<JToken>();
+            var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct, request.NumberOfResults);
+            var response = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
 
-            while (retries < maxRetries)
+            if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
             {
-                var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct, initialNumberOfResults);
-                var response = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
-
-                if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
-                {
-                    throw new FailedToFetchDataExeption("Failed to fetch data");
-                }
-
-                try
-                {
-                    var jsonResponse = JToken.Parse(response.Content);
-
-                    filteredData = jsonResponse["data"]
-                        .Where(item => item["current_price"] != null && item["current_price"].Type != JTokenType.Null)
-                        .ToList();
-
-                    if (filteredData.Any())
-                    {
-                        break;
-                    }
-
-                    retries++;
-                    initialNumberOfResults += 20; // Zwiększ liczbę wyników o 10
-                }
-                catch (JsonException ex)
-                {
-                    Console.WriteLine($"Json parsing error: {ex.Message}");
-                    return new RawJsonDtoResponse();
-                }
+                throw new FailedToFetchDataExeption("Failed to fetch data");
             }
 
-            if (!filteredData.Any())
-            {
-                throw new NoMatchingFiltredProductsExeption("No matching filtered products");
-            }
-
-            var filteredJsonResponse = new JObject
-            {
-                ["data"] = new JArray(filteredData)
-            };
-
-            var rawProductResponse = JsonConvert.DeserializeObject<RawJsonDtoResponse>(filteredJsonResponse.ToString());
+            var rawProductResponse = JsonConvert.DeserializeObject<RawJsonDtoResponse>(response.Content);
 
             if (rawProductResponse == null || rawProductResponse.Data == null)
             {
-                throw new CantDeserializeExeption(filteredJsonResponse.ToString());
+                throw new CantDeserializeExeption(response.Content);
             }
 
             var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
+            var filterNullValues = _productFilterService.FilterNullValues(mappedProducts);
+            var groupByLowestPrice = _productFilterService.GroupByLowestPrice(filterNullValues);
+            //var filteredProducts = await _productFilterService.FilterProducts(groupByLowestPrice, request.Shop);
 
-            var filteredProducts = await _productFilterService.FilterProducts(mappedProducts, request.Shop);
-
-            if (filteredProducts.Count == 0)
-            {
-                throw new NoMatchingFiltredProductsExeption("No matching filtered products");
-            }
+            //if (filteredProducts != 0)
+            //{
+            //    throw new NoMatchingFiltredProductsExeption("No matching filtered products");
+            //}
 
             var userId = _userIdService.GetUserId();
-
-            //await _productSaveService.SaveProductsAsync(filteredProducts, userId, false);
-
-            return new RawJsonDtoResponse { Data = filteredProducts };
+            try
+            {
+                await _productSaveService.SaveProductsAsync<RawJsonDto>(groupByLowestPrice, userId, false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred while saving products: {ex.Message}");
+            }
+            return new RawJsonDtoResponse { Data = new List<RawJsonDto> { groupByLowestPrice } };
         }
     }
 }

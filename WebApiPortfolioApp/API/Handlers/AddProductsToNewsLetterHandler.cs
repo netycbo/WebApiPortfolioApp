@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.DTOs.Helpers;
@@ -69,6 +70,13 @@ namespace WebApiPortfolioApp.API.Handlers
                 }
 
                 var mappedProducts = _mapper.Map<List<AddProductsToNewsLetterDto>>(rawProductResponse);
+                if (!mappedProducts.Any())
+                {
+                    throw new Exception($"{request.SearchProduct} has no current price. Cant be added to newsletter");
+                }
+                var filteredData = mappedProducts
+                    .Where(d => d.ProductName == request.SearchProduct && d.Price != null && d.Price != 0)
+                    .ToList();
                 var userIdClaim = _userIdService.GetUserId();
                 var userNameClaim = _userNameClaimService.GetUserName();
                 var subscribedEmails = await _getEmailService.GetMailingList();
@@ -81,8 +89,15 @@ namespace WebApiPortfolioApp.API.Handlers
                         Body = emailContent
                     });
                 }
-                await _productSaveService.SaveToProductSubscriptionAsync(mappedProducts, userIdClaim, userNameClaim);
-                return new AddProductsToNewsLetterRespons { Data = mappedProducts };
+                try
+                {
+                    await _productSaveService.SaveToProductSubscriptionAsync(mappedProducts, userIdClaim, userNameClaim);
+                }
+                catch (Exception ex) {
+                    Console.WriteLine(ex.Message);
+                }
+                return new AddProductsToNewsLetterRespons()
+                { Data = mappedProducts };
             }
             catch (CantDeserializeExeption)
             {

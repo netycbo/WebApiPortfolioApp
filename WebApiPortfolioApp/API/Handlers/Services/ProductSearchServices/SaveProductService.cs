@@ -4,6 +4,7 @@ using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.Data;
 using WebApiPortfolioApp.Data.Entinities;
 using WebApiPortfolioApp.Providers;
+using System.Linq;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
 {
@@ -18,23 +19,20 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
             _context = context;
             
         }
-        public async Task SaveProductsAsync<T>(List<T> products, string userId, bool isJob) where T : class
+        public async Task SaveProductsAsync<T>(RawJsonDto products, string userId, bool isJob) where T : class
         {
-            var searchHistory = products.Select(product =>
+            var priceHistory = products.Price_History?.FirstOrDefault();
+
+            var searchHistory = new SearchHistory
             {
-                dynamic dynamicProduct = product;
-                var priceHistory = dynamicProduct.product.Price_History.FirstOrDefault();
-                return new SearchHistory
-                {
-                    UserId = isJob ? "-1" : userId,
-                    IsJob = isJob,
-                    SearchString = dynamicProduct.product.Name ?? string.Empty,
-                    SearchDate = DateTime.UtcNow,
-                    Shop = dynamicProduct.product?.Store?.Name ?? string.Empty,
-                    Price = priceHistory?.Price ?? 0,
-                    Created = DateTime.UtcNow,
-                };
-            }).ToList();
+                UserId = isJob ? "-1" : userId,
+                IsJob = isJob,
+                SearchString = products.Name ?? string.Empty,
+                SearchDate = DateTime.UtcNow,
+                Shop = products.Store?.Name ?? string.Empty,
+                Price = priceHistory?.Price ?? 0,
+                Created = DateTime.UtcNow,
+            };
 
             _context.SearchHistory.AddRange(searchHistory);
             await _context.SaveChangesAsync();
@@ -47,7 +45,8 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
                 return new TemporaryProduct
                 {
                     Price = product.Price,
-                    Name = product.Name
+                    Name = product.Name,
+                    Store = product.Store
                 };
             }).ToList();
 

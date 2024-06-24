@@ -34,21 +34,29 @@ namespace WebApiPortfolioApp.API.Mappings
             CreateMap<string, ProductNamesDto>()
             .ForMember(x => x.ProductName, x => x.MapFrom(x => x));
             CreateMap<RawJsonDtoResponse, UpdatePriceProduktDto>();
+                
             CreateMap<TemporaryProduct, UpdatePriceProduktDto>();
             CreateMap<RawJsonDto, AddProductsToNewsLetterDto>()
-                .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name));
+            .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name))
+            .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price))
+            .ForMember(x => x.Store, x => x.MapFrom(y => y.Store.Name));
+            CreateMap<RawJsonDtoResponse, List<AddProductsToNewsLetterDto>>()
+                .ConvertUsing((src, dest, context) =>
+                {
+                    var result = src.Data.Select(item => context.Mapper.Map<AddProductsToNewsLetterDto>(item)).ToList();
+                    return result;
+                });
             CreateMap<RawJsonDto, UpdatePriceProduktDto>()
                 .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price));
 
             CreateMap<List<RawJsonDto>, UpdatePriceProduktDto>();
                
             CreateMap<UpdatePriceProduktDto, TemporaryProduct>()
-                .ForMember(x=>x.Name, x=>x.MapFrom(y=>y.ProductName));
-            CreateMap<RawJsonDtoResponse, List<AddProductsToNewsLetterDto>>()
-                .ConvertUsing(src => src.Data.Select(dto => new AddProductsToNewsLetterDto
-                {
-                    ProductName = dto.Name,
-                }).ToList());
+                .ForMember(x=>x.Name, x=>x.MapFrom(y=>y.ProductName))
+                .ForMember(x => x.Store, x => x.MapFrom(y => y.Store.Name));
+            CreateMap<RawJsonDtoResponse, AddProductsToNewsLetterDto>();
+            
+
         }
     }
 }

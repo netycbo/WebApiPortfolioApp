@@ -9,11 +9,11 @@ namespace WebApiPortfolioApp.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     //[Authorize(Roles = "Admin,User")]
-    public class GetProductsController : ControllerBase
+    public class ProductsController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public GetProductsController(IMediator mediator)
+        public ProductsController(IMediator mediator)
         {
             _mediator = mediator;
         }
@@ -25,14 +25,14 @@ namespace WebApiPortfolioApp.API.Controllers
             return Ok(result);
         }
         [HttpGet("CompareProducts")]
-        public async Task<IActionResult> CompareProducts([FromQuery] UpdatePriceProduktRequest request)
+        public async Task<IActionResult> UpdateAndCompare ([FromQuery] UpdatePriceProduktRequest request)
         {
             var result = await _mediator.Send(request);
             return Ok(result);
         }
 
         [HttpGet("GetAllProducts")]
-        public async Task<IActionResult> GetAllroducts([FromQuery] GetAllProductsNameRequest request)
+        public async Task<IActionResult> GetAllroductsFromDb([FromQuery] GetAllProductsNameRequest request)
         {
             var result = await _mediator.Send(request);
             return Ok(result);

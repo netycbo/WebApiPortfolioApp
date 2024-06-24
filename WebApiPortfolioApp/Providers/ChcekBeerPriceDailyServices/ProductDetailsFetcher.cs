@@ -44,9 +44,10 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
                     }
                     var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
 
-                    var filteredProducts = await _productFilterService.FilterProducts(mappedProducts, "Hansa Mango Ipa 0,5");
+                    var filteredProducts =  _productFilterService.FilterNullValues(mappedProducts);
+                    var lowestPrice = _productFilterService.GroupByLowestPrice(filteredProducts);
 
-                    await _productSaveService.SaveProductsAsync(filteredProducts, "-1", true);
+                    await _productSaveService.SaveProductsAsync<RawJsonDto>(lowestPrice, "-1", true);
 
                     return new RawJsonDtoResponse { Data = filteredProducts };
                 }

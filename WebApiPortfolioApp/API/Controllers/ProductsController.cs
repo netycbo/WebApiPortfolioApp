@@ -24,21 +24,21 @@ namespace WebApiPortfolioApp.API.Controllers
             var result = await _mediator.Send(request);
             return Ok(result);
         }
-        [HttpGet("CompareProducts")]
+        [HttpGet("UpdateProductPrice")]
         public async Task<IActionResult> UpdateAndCompare ([FromQuery] UpdatePriceProduktRequest request)
         {
             var result = await _mediator.Send(request);
             return Ok(result);
         }
 
-        [HttpGet("GetAllProducts")]
-        public async Task<IActionResult> GetAllroductsFromDb([FromQuery] GetAllProductsNameRequest request)
+        [HttpGet("GetAllProductsFromDb")]
+        public async Task<IActionResult> GetAll([FromQuery] GetAllProductsNameRequest request)
         {
             var result = await _mediator.Send(request);
             return Ok(result);
         }
 
-        [HttpGet("SingUpForNewsletter")]
+        [HttpGet("FindAndAddProductsToNewsletter")]
         public async Task<IActionResult> SingUp([FromQuery] AddProductsToNewsLetterRequest request)
         {
             var result = await _mediator.Send(request);

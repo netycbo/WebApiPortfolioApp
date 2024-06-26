@@ -5,6 +5,7 @@ using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services;
 using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
+using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
 using WebApiPortfolioApp.ExeptionsHandling.Exeptions;
@@ -20,10 +21,11 @@ namespace WebApiPortfolioApp.API.Handlers
         private readonly IUserIdService _userIdService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IDeserializeService _deserializeService;
+        private readonly IShopNameValidator _shopNameValidator;
 
         public ProductSearchHandler(IApiCall apiCall, IMapper mapper, IProductFilterService productFilterService,
             ISaveProductService productSaveService, IHttpContextAccessor httpContextAccessor, IUserIdService userIdService,
-            IDeserializeService deserializeService)
+            IDeserializeService deserializeService, IShopNameValidator shopNameValidator)
         {
             _apiCall = apiCall;
             _mapper = mapper;
@@ -32,6 +34,7 @@ namespace WebApiPortfolioApp.API.Handlers
             _httpContextAccessor = httpContextAccessor;
             _userIdService = userIdService;
             _deserializeService = deserializeService;
+            _shopNameValidator = shopNameValidator;
         }
 
         public async Task<RawJsonDtoResponse> Handle(ProductSearchRequest request, CancellationToken cancellationToken)
@@ -53,14 +56,16 @@ namespace WebApiPortfolioApp.API.Handlers
 
             var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
             var filterNullValues = _productFilterService.FilterNullValues(mappedProducts);
+            
+            if (filterNullValues == null)
+            {
+                throw new NoMatchingFiltredProductsExeption("No matching filtered products");
+            }
+            if (request.Shop != null)
+            {
+                var shopNameValidator = _shopNameValidator.ValidateShopName(request.Shop);
+            }
             var groupByLowestPrice = _productFilterService.GroupByLowestPrice(filterNullValues);
-            //var filteredProducts = await _productFilterService.FilterProducts(groupByLowestPrice, request.Shop);
-
-            //if (filteredProducts != 0)
-            //{
-            //    throw new NoMatchingFiltredProductsExeption("No matching filtered products");
-            //}
-
             var userId = _userIdService.GetUserId();
             try
             {
@@ -68,7 +73,8 @@ namespace WebApiPortfolioApp.API.Handlers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error occurred while saving products: {ex.Message}");
+                throw new Exception($"Error occurred while saving products: {ex.Message}");
+                throw;
             }
             return new RawJsonDtoResponse { Data = new List<RawJsonDto> { groupByLowestPrice } };
         }

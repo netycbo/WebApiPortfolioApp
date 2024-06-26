@@ -26,31 +26,27 @@ namespace WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices
             _userIdService = userIdService;
         }
 
-        public async Task SaveToProductSubscriptionAsync(List<AddProductsToNewsLetterDto> products, string userId, string userName)
+        public async Task SaveToProductSubscriptionAsync(AddProductsToNewsLetterDto products, string userId, string userName)
         {
             try
             {
-                var productSubscriptions = products.Select(products => new ProductSubscription
+                var productSubscriptions = new ProductSubscription
                 {
                     ProductName = products.ProductName ?? string.Empty,
                     Created = DateTime.UtcNow,
                     UserId = userId,
                     UserName = userName,
-                    Shop = products.Store,
+                    Shop = products.Store.Name,
                     Price = products.Price
-
-                }).ToList();
-                Console.WriteLine($"ProductSubscription: {JsonConvert.SerializeObject(productSubscriptions)}");
-
+                };
+            
                 _context.ProductSubscriptions.AddRange(productSubscriptions);
-
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while saving product subscriptions.");
                 _logger.LogError("Stack Trace: {StackTrace}", ex.StackTrace);
-
                 throw;
             }
         }

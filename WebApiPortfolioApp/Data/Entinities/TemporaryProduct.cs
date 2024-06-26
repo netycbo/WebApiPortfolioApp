@@ -1,7 +1,9 @@
-﻿using WebApiPortfolioApp.API.DTOs.Helpers;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApiPortfolioApp.API.DTOs.Helpers;
 
 namespace WebApiPortfolioApp.Data.Entinities
 {
+    
     public class TemporaryProduct
     {
         public int Id { get; set; }

@@ -7,6 +7,6 @@ namespace WebApiPortfolioApp.API.Handlers.Services.Interfaces
     public interface ISaveProductService
     {
         Task SaveProductsAsync<T>(RawJsonDto products, string userId, bool isJob) where T : class;
-        Task SaveTemporaryProductsAsync(IEnumerable<TemporaryProduct> products);
+        Task SaveTemporaryProductsAsync(List<TemporaryProductsDto> products);
     }
 }

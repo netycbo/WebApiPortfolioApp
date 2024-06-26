@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using WebApiPortfolioApp.Data.Entinities.Identity;
 
 namespace WebApiPortfolioApp.Data.Entinities
 {
@@ -12,6 +13,8 @@ namespace WebApiPortfolioApp.Data.Entinities
         public string Shop { get; set; }
         public decimal Price { get; set; }
         public bool IsJob { get; set; }
-       
+        [ForeignKey("UserId")]
+        public virtual ApplicationUser User { get; set; }
+
     }
 }

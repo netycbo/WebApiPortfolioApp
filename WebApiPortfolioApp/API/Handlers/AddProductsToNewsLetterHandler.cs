@@ -20,7 +20,7 @@ using WebApiPortfolioApp.Providers.ViewRender;
 using WebApiPortfolioApp.Services.SendEmail;
 namespace WebApiPortfolioApp.API.Handlers
 {
-    public class AddProductsToNewsLetterHandler : IRequestHandler<AddProductsToNewsLetterRequest, AddProductsToNewsLetterRespons>
+    public class AddProductsToNewsLetterHandler : IRequestHandler<AddProductsToNewsLetterRequest, RawJsonDto>
     {
         private readonly IApiCall _apiCall;
         private readonly IMapper _mapper;
@@ -32,11 +32,13 @@ namespace WebApiPortfolioApp.API.Handlers
         private readonly IEmailService _emailService;
         private readonly ViewRender _viewRenderer;
         private readonly IGetEmailService _getEmailService;
+        private readonly IProductFilterService _productFilterService;
 
         public AddProductsToNewsLetterHandler(IApiCall apiCall, IMapper mapper, IUserIdService userIdService,
             ISaveToProductSubscriptionService productSaveService, IHttpContextAccessor httpContextAccessor,
             IDeserializeService deserializeService, IUserNameClaimService userNameClaimService,
-            IEmailService emailService, ViewRender viewRenderer, IGetEmailService getEmailService)
+            IEmailService emailService, ViewRender viewRenderer, IGetEmailService getEmailService,
+            IProductFilterService productFilterService)
         {
             _apiCall = apiCall;
             _mapper = mapper;
@@ -48,12 +50,13 @@ namespace WebApiPortfolioApp.API.Handlers
             _emailService = emailService;
             _viewRenderer = viewRenderer;
             _getEmailService = getEmailService;
+            _productFilterService = productFilterService;
         }
 
-        public async Task<AddProductsToNewsLetterRespons> Handle(AddProductsToNewsLetterRequest request, CancellationToken cancellationToken)
+        public async Task<RawJsonDto> Handle(AddProductsToNewsLetterRequest request, CancellationToken cancellationToken)
         {
             var emailContent = await _viewRenderer.RenderToStringAsync("SendEmail/NewsLetter/WelcomToNewsLetter", new { ProductName = request.SearchProduct });
-            var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct, 1);
+            var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct, 50);
             var response = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
             Console.WriteLine($"Response Content: {response.Content}");
             if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
@@ -68,15 +71,15 @@ namespace WebApiPortfolioApp.API.Handlers
                 {
                     throw new CantDeserializeExeption(response.Content);
                 }
-
-                var mappedProducts = _mapper.Map<List<AddProductsToNewsLetterDto>>(rawProductResponse);
-                if (!mappedProducts.Any())
+                
+                var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse);
+                var filterNullValues = _productFilterService.FilterNullValues(mappedProducts); 
+                if (filterNullValues.Count == 0)
                 {
-                    throw new Exception($"{request.SearchProduct} has no current price. Cant be added to newsletter");
+                    throw new NoMatchingFiltredProductsExeption("No matching filtered products");
                 }
-                var filteredData = mappedProducts
-                    .Where(d => d.ProductName == request.SearchProduct && d.Price != null && d.Price != 0)
-                    .ToList();
+                var groupedProducts = _productFilterService.GroupByLowestPrice(filterNullValues);
+                var newsletterProducts = _mapper.Map<AddProductsToNewsLetterDto>(groupedProducts);
                 var userIdClaim = _userIdService.GetUserId();
                 var userNameClaim = _userNameClaimService.GetUserName();
                 var subscribedEmails = await _getEmailService.GetMailingList();
@@ -91,13 +94,13 @@ namespace WebApiPortfolioApp.API.Handlers
                 }
                 try
                 {
-                    await _productSaveService.SaveToProductSubscriptionAsync(mappedProducts, userIdClaim, userNameClaim);
+                    await _productSaveService.SaveToProductSubscriptionAsync(newsletterProducts, userIdClaim, userNameClaim);
                 }
                 catch (Exception ex) {
                     Console.WriteLine(ex.Message);
                 }
-                return new AddProductsToNewsLetterRespons()
-                { Data = mappedProducts };
+                return new RawJsonDto();
+                
             }
             catch (CantDeserializeExeption)
             {

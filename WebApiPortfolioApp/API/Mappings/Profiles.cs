@@ -10,52 +10,52 @@ namespace WebApiPortfolioApp.API.Mappings
 {
     public class Profiles : Profile
     {
-        public Profiles() 
+        public Profiles()
         {
             CreateMap<ApplicationUser, RegisteringDto>()
-                    .ForMember(x => x.Name, x => x.MapFrom(y => y.UserName))
-                    .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                    .ForMember(dest => dest.BeerAlert, opt => opt.MapFrom(src => src.IsSubscribedToNewsLetter));
-
+                .ForMember(x => x.Name, x => x.MapFrom(y => y.UserName))
+                .ForMember(x => x.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(x => x.BeerAlert, opt => opt.MapFrom(src => src.IsSubscribedToNewsLetter));
 
             CreateMap<RegisteringRequest, RegisteringDto>()
-                   .ForMember(x => x.Name, x => x.MapFrom(y => y.Name))
-                   .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                   .ForMember(x => x.BeerAlert, y => y.MapFrom(y => y.SubscribeToMailingList));
-                   
+                .ForMember(x => x.Name, x => x.MapFrom(y => y.Name))
+                .ForMember(x => x.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(x => x.BeerAlert, y => y.MapFrom(y => y.SubscribeToMailingList));
 
             CreateMap<RegisteringRequest, ApplicationUser>()
-                   .ForMember(x => x.UserName, x => x.MapFrom(y => y.Name))
-                   .ForMember(x => x.Email, x => x.MapFrom(src => src.Email));
+                .ForMember(x => x.UserName, x => x.MapFrom(y => y.Name))
+                .ForMember(x => x.Email, x => x.MapFrom(src => src.Email));
+
             CreateMap<ApplicationUser, LoginDto>()
                 .ForMember(x => x.Name, x => x.MapFrom(y => y.UserName));
-            CreateMap<LoginRequest, LoginDto>();
-            CreateMap<RawJsonDtoResponse, List<RawJsonDto>>();
-            CreateMap<string, ProductNamesDto>()
-            .ForMember(x => x.ProductName, x => x.MapFrom(x => x));
-            CreateMap<RawJsonDtoResponse, UpdatePriceProduktDto>();
-                
-            CreateMap<TemporaryProduct, UpdatePriceProduktDto>();
-            CreateMap<RawJsonDto, AddProductsToNewsLetterDto>()
-            .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name))
-            .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price))
-            .ForMember(x => x.Store, x => x.MapFrom(y => y.Store.Name));
-            CreateMap<RawJsonDtoResponse, List<AddProductsToNewsLetterDto>>()
-                .ConvertUsing((src, dest, context) =>
-                {
-                    var result = src.Data.Select(item => context.Mapper.Map<AddProductsToNewsLetterDto>(item)).ToList();
-                    return result;
-                });
-            CreateMap<RawJsonDto, UpdatePriceProduktDto>()
-                .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price));
 
-            CreateMap<List<RawJsonDto>, UpdatePriceProduktDto>();
-               
-            CreateMap<UpdatePriceProduktDto, TemporaryProduct>()
-                .ForMember(x=>x.Name, x=>x.MapFrom(y=>y.ProductName))
-                .ForMember(x => x.Store, x => x.MapFrom(y => y.Store.Name));
-            CreateMap<RawJsonDtoResponse, AddProductsToNewsLetterDto>();
-            
+            CreateMap<LoginRequest, LoginDto>();
+
+            CreateMap<RawJsonDtoResponse, List<RawJsonDto>>()
+                .ConvertUsing((src, dest, context) => context.Mapper.Map<List<RawJsonDto>>(src.Data));
+
+            CreateMap<RawJsonDto, AddProductsToNewsLetterDto>()
+                .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name))
+                .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price))
+                .ForMember(dest => dest.Store, opt => opt.MapFrom(src => new StoreName { Name = src.Store.Name }));
+
+            CreateMap<RawJsonDto, UpdatePriceProduktDto>()
+                .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name))
+                .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price))
+                .ForMember(x => x.Store, x => x.MapFrom(y => new StoreName { Name = y.Store.Name }));
+
+
+
+            CreateMap<TemporaryProductsDto, UpdatePriceProduktDto>()
+                .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name))
+                .ForMember(x => x.Price, x => x.MapFrom(y => y.Price))
+                .ForMember(x => x.Store, x => x.MapFrom(y => new StoreName { Name = y.Store.Name }));
+
+
+            CreateMap<UpdatePriceProduktDto, TemporaryProductsDto>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ProductName))
+            .ForMember(dest => dest.Store, x => x.MapFrom(y => new StoreName { Name = y.Store.Name }));
+
 
         }
     }

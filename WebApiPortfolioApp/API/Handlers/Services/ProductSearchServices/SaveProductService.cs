@@ -5,6 +5,7 @@ using WebApiPortfolioApp.Data;
 using WebApiPortfolioApp.Data.Entinities;
 using WebApiPortfolioApp.Providers;
 using System.Linq;
+using WebApiPortfolioApp.API.DTOs;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
 {
@@ -12,12 +13,9 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
     {
         private readonly AppDbContext _context;
 
-       
-
         public SaveProductService(AppDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
-            
         }
         public async Task SaveProductsAsync<T>(RawJsonDto products, string userId, bool isJob) where T : class
         {
@@ -29,7 +27,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
                 IsJob = isJob,
                 SearchString = products.Name ?? string.Empty,
                 SearchDate = DateTime.UtcNow,
-                Shop = products.Store?.Name ?? string.Empty,
+                Shop = products.Store.Name, 
                 Price = priceHistory?.Price ?? 0,
                 Created = DateTime.UtcNow,
             };
@@ -38,7 +36,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
             await _context.SaveChangesAsync();
         }
 
-        public async Task SaveTemporaryProductsAsync(IEnumerable<TemporaryProduct> products)
+        public async Task SaveTemporaryProductsAsync(List<TemporaryProductsDto> products)
         {
             var temporaryProducts = products.Select(product =>
             {
@@ -46,9 +44,10 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
                 {
                     Price = product.Price,
                     Name = product.Name,
-                    Store = product.Store
+                    Store = product.Store.Name
                 };
             }).ToList();
+
 
             _context.TemporaryProducts.AddRange(temporaryProducts);
             await _context.SaveChangesAsync();

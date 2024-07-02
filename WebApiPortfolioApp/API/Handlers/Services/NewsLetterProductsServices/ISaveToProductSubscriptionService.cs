@@ -5,6 +5,6 @@ namespace WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices
 {
     public interface ISaveToProductSubscriptionService
     {
-        Task SaveToProductSubscriptionAsync(AddProductsToNewsLetterDto products, string userId, string userName);
+        Task SaveToProductSubscriptionAsync(List<AddProductsToNewsLetterDto> products, string userId, string userName);
     }
 }

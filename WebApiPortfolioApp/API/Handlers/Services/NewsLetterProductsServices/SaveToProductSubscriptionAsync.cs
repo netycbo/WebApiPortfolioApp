@@ -1,12 +1,7 @@
-﻿using System.Security.Claims;
-using WebApiPortfolioApp.API.DTOs;
+﻿using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.Data;
 using WebApiPortfolioApp.Data.Entinities;
-using Microsoft.Extensions.Logging;
-using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices;
-using WebApiPortfolioApp.API.DTOs.Helpers;
-using Newtonsoft.Json;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices
 {
@@ -26,20 +21,20 @@ namespace WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices
             _userIdService = userIdService;
         }
 
-        public async Task SaveToProductSubscriptionAsync(AddProductsToNewsLetterDto products, string userId, string userName)
+        public async Task SaveToProductSubscriptionAsync(List<AddProductsToNewsLetterDto> products, string userId, string userName)
         {
             try
             {
-                var productSubscriptions = new ProductSubscription
+                var productSubscriptions = products.Select(product => new ProductSubscription
                 {
-                    ProductName = products.ProductName ?? string.Empty,
+                    ProductName = product.ProductName ?? string.Empty,
                     Created = DateTime.UtcNow,
                     UserId = userId,
                     UserName = userName,
-                    Shop = products.Store.Name,
-                    Price = products.Price
-                };
-            
+                    Store = product.Store.Name,
+                    Price = product.Price
+                }).ToList();
+
                 _context.ProductSubscriptions.AddRange(productSubscriptions);
                 await _context.SaveChangesAsync();
             }
@@ -50,7 +45,5 @@ namespace WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices
                 throw;
             }
         }
-
-        
     }
 }

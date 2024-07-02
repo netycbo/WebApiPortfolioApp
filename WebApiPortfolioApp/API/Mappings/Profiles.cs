@@ -37,25 +37,30 @@ namespace WebApiPortfolioApp.API.Mappings
             CreateMap<RawJsonDto, AddProductsToNewsLetterDto>()
                 .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name))
                 .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price))
-                .ForMember(dest => dest.Store, opt => opt.MapFrom(src => new StoreName { Name = src.Store.Name }));
-
+                 .ForMember(dest => dest.Store, opt => opt.MapFrom(y => new StoreName { Name = y.Store.Name }));
+            CreateMap<List<RawJsonDto>, List<AddProductsToNewsLetterDto>>()
+             .ConvertUsing((src, dest, context) =>
+             {
+                 var mappedList = src.Select(item => context.Mapper.Map<AddProductsToNewsLetterDto>(item)).ToList();
+                 return mappedList;
+             });
             CreateMap<RawJsonDto, UpdatePriceProduktDto>()
                 .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name))
                 .ForMember(x => x.Price, x => x.MapFrom(y => y.Current_Price))
                 .ForMember(x => x.Store, x => x.MapFrom(y => new StoreName { Name = y.Store.Name }));
-
-
+            CreateMap<List<RawJsonDto>, UpdatePriceProduktDto>()
+                .ForMember(x => x.ProductName, x => x.MapFrom(y => y))
+                .ForMember(x => x.Price, x => x.MapFrom(y => y))
+                .ForMember(x => x.Store, x => x.MapFrom(y => y));
 
             CreateMap<TemporaryProductsDto, UpdatePriceProduktDto>()
                 .ForMember(x => x.ProductName, x => x.MapFrom(y => y.Name))
                 .ForMember(x => x.Price, x => x.MapFrom(y => y.Price))
                 .ForMember(x => x.Store, x => x.MapFrom(y => new StoreName { Name = y.Store.Name }));
 
-
             CreateMap<UpdatePriceProduktDto, TemporaryProductsDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ProductName))
             .ForMember(dest => dest.Store, x => x.MapFrom(y => new StoreName { Name = y.Store.Name }));
-
 
         }
     }

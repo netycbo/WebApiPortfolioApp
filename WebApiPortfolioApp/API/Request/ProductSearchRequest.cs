@@ -8,7 +8,7 @@ namespace WebApiPortfolioApp.API.Request
     {
         [Required]
         public string SearchProduct { get; set; }
-        public string Shop { get; set; } = string.Empty.ToLower();
-        public int NumberOfResults { get; set; } = 50;
+        public string Store { get; set; } = string.Empty.ToLower();
+        public int NumberOfResults { get; set; } = 100;
     }
 }

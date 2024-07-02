@@ -159,6 +159,49 @@ namespace WebApiPortfolioApp.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("WebApiPortfolioApp.Data.Entinities.HistoryPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateOfMaxPrice")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateOfMinPrice")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PriceAverage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PriceDifference")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PriceMax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PriceMin")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StoreWithMaxPrice")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StoreWithMinPrice")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HistoryPrices");
+                });
+
             modelBuilder.Entity("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -245,7 +288,7 @@ namespace WebApiPortfolioApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Shop")
+                    b.Property<string>("Store")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -297,15 +340,17 @@ namespace WebApiPortfolioApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Shop")
+                    b.Property<string>("Store")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("SearchHistory");
                 });
@@ -389,6 +434,17 @@ namespace WebApiPortfolioApp.Migrations
                 {
                     b.HasOne("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", "User")
                         .WithMany("ProductSubscriptions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WebApiPortfolioApp.Data.Entinities.SearchHistory", b =>
+                {
+                    b.HasOne("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

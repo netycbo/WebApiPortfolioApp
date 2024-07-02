@@ -1,9 +1,5 @@
 ﻿using AutoMapper;
 using MediatR;
-using Microsoft.AspNet.Identity;
-using Newtonsoft.Json;
-using System.Linq.Expressions;
-using System.Security.Claims;
 using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services;
@@ -14,7 +10,6 @@ using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
-using WebApiPortfolioApp.Data;
 using WebApiPortfolioApp.ExeptionsHandling.Exeptions;
 using WebApiPortfolioApp.Providers.ViewRender;
 using WebApiPortfolioApp.Services.SendEmail;
@@ -33,12 +28,13 @@ namespace WebApiPortfolioApp.API.Handlers
         private readonly ViewRender _viewRenderer;
         private readonly IGetEmailService _getEmailService;
         private readonly IProductFilterService _productFilterService;
+        private readonly IShopNameValidator _shopNameValidator;
 
         public AddProductsToNewsLetterHandler(IApiCall apiCall, IMapper mapper, IUserIdService userIdService,
             ISaveToProductSubscriptionService productSaveService, IHttpContextAccessor httpContextAccessor,
             IDeserializeService deserializeService, IUserNameClaimService userNameClaimService,
             IEmailService emailService, ViewRender viewRenderer, IGetEmailService getEmailService,
-            IProductFilterService productFilterService)
+            IProductFilterService productFilterService, IShopNameValidator shopNameValidator)
         {
             _apiCall = apiCall;
             _mapper = mapper;
@@ -51,6 +47,7 @@ namespace WebApiPortfolioApp.API.Handlers
             _viewRenderer = viewRenderer;
             _getEmailService = getEmailService;
             _productFilterService = productFilterService;
+            _shopNameValidator = shopNameValidator;
         }
 
         public async Task<RawJsonDto> Handle(AddProductsToNewsLetterRequest request, CancellationToken cancellationToken)
@@ -71,15 +68,27 @@ namespace WebApiPortfolioApp.API.Handlers
                 {
                     throw new CantDeserializeExeption(response.Content);
                 }
-                
+
                 var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse);
-                var filterNullValues = _productFilterService.FilterNullValues(mappedProducts); 
+                var filterNullValues = _productFilterService.FilterNullValues(mappedProducts);
                 if (filterNullValues.Count == 0)
                 {
-                    throw new NoMatchingFiltredProductsExeption("No matching filtered products");
+                    throw new NoMatchingFiltredProductsExeption("To many null values in data");
                 }
-                var groupedProducts = _productFilterService.GroupByLowestPrice(filterNullValues);
-                var newsletterProducts = _mapper.Map<AddProductsToNewsLetterDto>(groupedProducts);
+                List<RawJsonDto> filteredByStoreName = filterNullValues;
+                if (!string.IsNullOrEmpty(request.Shop))
+                {
+                    var shopNameValidatorTask = _shopNameValidator.ValidateShopName(request.Shop);
+                    var shopNameValidator = await shopNameValidatorTask;
+                    filteredByStoreName = _productFilterService.FilterByStoreName(filterNullValues, shopNameValidator);
+                }
+                var outOfStockFilter = _productFilterService.OutOfStockFilter(filteredByStoreName);
+                if (outOfStockFilter == null)
+                {
+                    throw new OutOFStockExeption("Last date in price history is older than 25 days");
+                }
+                var groupedProducts = _productFilterService.GroupByLowestPrice(outOfStockFilter);
+                var newsletterProducts = _mapper.Map<List<AddProductsToNewsLetterDto>>(groupedProducts);
                 var userIdClaim = _userIdService.GetUserId();
                 var userNameClaim = _userNameClaimService.GetUserName();
                 var subscribedEmails = await _getEmailService.GetMailingList();
@@ -96,11 +105,12 @@ namespace WebApiPortfolioApp.API.Handlers
                 {
                     await _productSaveService.SaveToProductSubscriptionAsync(newsletterProducts, userIdClaim, userNameClaim);
                 }
-                catch (Exception ex) {
-                    Console.WriteLine(ex.Message);
+                catch (FailedToSaveExeption)
+                {
+                    throw new FailedToSaveExeption("Error occurred while saving products");
                 }
                 return new RawJsonDto();
-                
+
             }
             catch (CantDeserializeExeption)
             {

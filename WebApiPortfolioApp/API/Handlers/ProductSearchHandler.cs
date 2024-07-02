@@ -56,28 +56,38 @@ namespace WebApiPortfolioApp.API.Handlers
 
             var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
             var filterNullValues = _productFilterService.FilterNullValues(mappedProducts);
-            
+
             if (filterNullValues == null)
             {
                 throw new NoMatchingFiltredProductsExeption("No matching filtered products");
             }
-            if (request.Shop != null)
+            List<RawJsonDto> filteredByStoreName = filterNullValues;
+            if (!string.IsNullOrEmpty(request.Store))
             {
-                var shopNameValidator = _shopNameValidator.ValidateShopName(request.Shop);
+                var shopNameValidatorTask = _shopNameValidator.ValidateShopName(request.Store);
+                var shopNameValidator = await shopNameValidatorTask;
+                filteredByStoreName = _productFilterService.FilterByStoreName(filterNullValues, shopNameValidator);
             }
-            var groupByLowestPrice = _productFilterService.GroupByLowestPrice(filterNullValues);
+            var outOfStockFilter = _productFilterService.OutOfStockFilter(filteredByStoreName);
+            if (outOfStockFilter == null)
+            {
+                throw new OutOFStockExeption("Last date in price history is older than 25 days");
+            }
+
+            var groupByLowestPrice = _productFilterService.GroupByLowestPrice(outOfStockFilter);
             var userId = _userIdService.GetUserId();
             try
             {
-                await _productSaveService.SaveProductsAsync<RawJsonDto>(groupByLowestPrice, userId, false);
+                await _productSaveService.SaveProductsAsync<List<RawJsonDto>>(groupByLowestPrice, userId, false);
             }
-            catch (Exception ex)
+            catch (FailedToSaveExeption)
             {
-                throw new Exception($"Error occurred while saving products: {ex.Message}");
+                throw new FailedToSaveExeption($"Error occurred while saving products");
                 throw;
             }
-            return new RawJsonDtoResponse { Data = new List<RawJsonDto> { groupByLowestPrice } };
+            var groupByLowestPriceList = groupByLowestPrice.ToList();
+            return new RawJsonDtoResponse { Data = groupByLowestPriceList };
+            
         }
     }
 }
-

@@ -45,9 +45,9 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
                     var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
 
                     var filteredProducts =  _productFilterService.FilterNullValues(mappedProducts);
-                    var lowestPrice = _productFilterService.GroupByLowestPrice(filteredProducts);
+                    var lowestPrice = _productFilterService.GroupByLowestPrice(filteredProducts).ToList();
 
-                    await _productSaveService.SaveProductsAsync<RawJsonDto>(lowestPrice, "-1", true);
+                    await _productSaveService.SaveProductsAsync<List<RawJsonDto>>(lowestPrice, "-1", true);
 
                     return new RawJsonDtoResponse { Data = filteredProducts };
                 }

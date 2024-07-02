@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApiPortfolioApp.Migrations
 {
     /// <inheritdoc />
-    public partial class First : Migration
+    public partial class FirstAfterColapse : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,6 +30,7 @@ namespace WebApiPortfolioApp.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IsSubscribedToNewsLetter = table.Column<bool>(type: "bit", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -51,24 +52,39 @@ namespace WebApiPortfolioApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SearchHistory",
+                name: "HistoryPrices",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    SearchString = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SearchDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Shop = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PriceMax = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DateOfMaxPrice = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StoreWithMaxPrice = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PriceMin = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DateOfMinPrice = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StoreWithMinPrice = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PriceDifference = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PriceAverage = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SearchHistory", x => x.Id);
+                    table.PrimaryKey("PK_HistoryPrices", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TemporaryProducts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Store = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TemporaryProducts", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -177,6 +193,58 @@ namespace WebApiPortfolioApp.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "ProductSubscriptions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Store = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductSubscriptions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductSubscriptions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SearchHistory",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SearchString = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SearchDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Store = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    IsJob = table.Column<bool>(type: "bit", nullable: false),
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SearchHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SearchHistory_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -215,6 +283,16 @@ namespace WebApiPortfolioApp.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductSubscriptions_UserId",
+                table: "ProductSubscriptions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SearchHistory_UserId",
+                table: "SearchHistory",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -236,7 +314,16 @@ namespace WebApiPortfolioApp.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "HistoryPrices");
+
+            migrationBuilder.DropTable(
+                name: "ProductSubscriptions");
+
+            migrationBuilder.DropTable(
                 name: "SearchHistory");
+
+            migrationBuilder.DropTable(
+                name: "TemporaryProducts");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

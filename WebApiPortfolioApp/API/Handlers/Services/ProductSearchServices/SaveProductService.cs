@@ -1,11 +1,8 @@
-﻿using System.Security.Claims;
+﻿using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.Data;
 using WebApiPortfolioApp.Data.Entinities;
-using WebApiPortfolioApp.Providers;
-using System.Linq;
-using WebApiPortfolioApp.API.DTOs;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
 {
@@ -17,20 +14,22 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
         {
             _context = context;
         }
-        public async Task SaveProductsAsync<T>(RawJsonDto products, string userId, bool isJob) where T : class
+        public async Task SaveProductsAsync<T>(List<RawJsonDto> products, string userId, bool isJob) where T : class
         {
-            var priceHistory = products.Price_History?.FirstOrDefault();
-
-            var searchHistory = new SearchHistory
+            var searchHistory = products.Select(product =>
             {
-                UserId = isJob ? "-1" : userId,
-                IsJob = isJob,
-                SearchString = products.Name ?? string.Empty,
-                SearchDate = DateTime.UtcNow,
-                Shop = products.Store.Name, 
-                Price = priceHistory?.Price ?? 0,
-                Created = DateTime.UtcNow,
-            };
+                var priceHistory = product.Price_History.FirstOrDefault();
+                return new SearchHistory
+                {
+                    UserId = isJob ? "-1" : userId,
+                    IsJob = isJob,
+                    SearchString = product.Name,
+                    SearchDate = DateTime.UtcNow,
+                    Store = product?.Store.Name ?? null,
+                    Price = priceHistory?.Price ?? 0,
+                    Created = DateTime.UtcNow,
+                };
+            }).ToList();
 
             _context.SearchHistory.AddRange(searchHistory);
             await _context.SaveChangesAsync();
@@ -47,7 +46,6 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
                     Store = product.Store.Name
                 };
             }).ToList();
-
 
             _context.TemporaryProducts.AddRange(temporaryProducts);
             await _context.SaveChangesAsync();

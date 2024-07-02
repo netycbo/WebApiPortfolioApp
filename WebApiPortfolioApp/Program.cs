@@ -6,27 +6,23 @@ using Microsoft.Extensions.Options;
 using Quartz;
 using RestSharp;
 using System.Reflection;
+using WebApiPortfolioApp.API;
 using WebApiPortfolioApp.API.Handlers;
 using WebApiPortfolioApp.API.Handlers.Services;
 using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices;
+using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces;
+using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
+using WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices;
+using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 using WebApiPortfolioApp.API.Mappings;
 using WebApiPortfolioApp.Data;
 using WebApiPortfolioApp.Data.Entinities.Identity;
-using WebApiPortfolioApp.Providers;
+using WebApiPortfolioApp.ExeptionsHandling;
+using WebApiPortfolioApp.HealthChecks;
 using WebApiPortfolioApp.Providers.ViewRender;
 using WebApiPortfolioApp.Services.SendEmail;
-using WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices.Interfaces;
-using WebApiPortfolioApp.ExeptionsHandling;
-using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using WebApiPortfolioApp.HealthChecks;
-using WebApiPortfolioApp.API;
-using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
-using WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices;
-using System.Configuration;
-using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +30,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
+builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+{
     options.SignIn.RequireConfirmedAccount = false;
     options.User.RequireUniqueEmail = true;
 })
@@ -86,7 +83,8 @@ builder.Services.Configure<RazorViewEngineOptions>(options =>
     options.ViewLocationFormats.Add("~/Providers/{0}.cshtml");
 });
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("KassalappenApi"));
-builder.Services.AddSingleton<IRestClient>(sp => {
+builder.Services.AddSingleton<IRestClient>(sp =>
+{
     var apiSettings = sp.GetRequiredService<IOptions<ApiSettings>>().Value;
     return new RestClient(apiSettings.BaseUrl);
 });
@@ -101,7 +99,7 @@ builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("Database")
     .AddCheck<ApiHealthCheck>("Api");
 builder.Services.AddScoped<IComparePrices, ComparePrices>();
-builder.Services.AddScoped<IFetchProductDetails,ProductDetailsFetcher>();
+builder.Services.AddScoped<IFetchProductDetails, ProductDetailsFetcher>();
 builder.Services.AddScoped<IAveragePriceComparator, AveragePriceComperator>();
 builder.Services.AddScoped<IShopNameValidator, ShopNameValidator>();
 builder.Services.AddScoped<IDeserializeService, DeserializeService>();
@@ -124,7 +122,7 @@ builder.Services.AddQuartz(q =>
 {
     q.UseMicrosoftDependencyInjectionJobFactory();
     q.AddJob<PriceCheckJob>(opts => opts.WithIdentity("PriceCheckJob").StoreDurably());
-    
+
 });
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
@@ -136,8 +134,8 @@ await JobScheduler.ScheduleJob(scheduler);
 
 if (app.Environment.IsDevelopment())
 {
-   app.UseSwagger();
-   app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

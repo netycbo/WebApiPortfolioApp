@@ -19,11 +19,11 @@
             "Gigaboks",
             "Havaristen",
             "Joker",
-            "KIWI",
+            "Kiwi",
             "Matkroken",
             "Meny",
             "Nærbutikken",
-            "REMA 1000",
+            "Rema 1000",
             "SPAR"
         };
     }

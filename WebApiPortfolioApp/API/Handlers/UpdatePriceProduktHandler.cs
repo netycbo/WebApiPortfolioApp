@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Extensions;
 using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services;
@@ -10,7 +9,6 @@ using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;
 using WebApiPortfolioApp.Data;
-using WebApiPortfolioApp.Data.Entinities;
 using WebApiPortfolioApp.ExeptionsHandling.Exeptions;
 
 namespace WebApiPortfolioApp.API.Handlers
@@ -65,11 +63,11 @@ namespace WebApiPortfolioApp.API.Handlers
                 var filterNullValues = _productFilterService.FilterNullValues(mappedProducts);
                 if (filterNullValues.Count == 0)
                 {
-                    throw new NoMatchingFiltredProductsExeption("No matching filtered products");
+                    throw new NoMatchingFiltredProductsExeption("To many null values in data");
                 }
                 var groupedData = _productFilterService.GroupByLowestPrice(filterNullValues);
-                var updateProductDtos = _mapper.Map<UpdatePriceProduktDto>(groupedData);
-                updateResponses.Add(updateProductDtos);
+                var updateProductDtos = _mapper.Map<List<UpdatePriceProduktDto>>(groupedData);
+                updateResponses.AddRange(updateProductDtos);
 
                 foreach (var updateProductDto in updateResponses)
                 {
@@ -77,11 +75,11 @@ namespace WebApiPortfolioApp.API.Handlers
 
                     try
                     {
-                        await _productSaveService.SaveTemporaryProductsAsync(new List<TemporaryProductsDto> { tempProduct }); 
+                        await _productSaveService.SaveTemporaryProductsAsync(new List<TemporaryProductsDto> { tempProduct });
                     }
-                    catch (Exception ex)
+                    catch (FailedToSaveExeption ex)
                     {
-                        throw new Exception($"Error saving temporary product: {ex.Message}");
+                        throw new FailedToSaveExeption($"Error occurred while saving products: {ex.Message}");
                     }
                 }
 
@@ -98,7 +96,7 @@ namespace WebApiPortfolioApp.API.Handlers
                     if (productToUpdate.Price > tempProduct.Price)
                     {
                         productToUpdate.Price = tempProduct.Price;
-                        productToUpdate.Shop = tempProduct.Store;
+                        productToUpdate.Store = tempProduct.Store;
                     }
                 }
 

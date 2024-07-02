@@ -1,4 +1,4 @@
-﻿using WebApiPortfolioApp.API.DTOs.Helpers;
+﻿using WebApiPortfolioApp.Data.Entinities;
 
 
 namespace WebApiPortfolioApp.API.DTOs

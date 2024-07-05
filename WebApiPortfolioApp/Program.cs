@@ -23,6 +23,7 @@ using WebApiPortfolioApp.ExeptionsHandling;
 using WebApiPortfolioApp.HealthChecks;
 using WebApiPortfolioApp.Providers.ViewRender;
 using WebApiPortfolioApp.Services.SendEmail;
+using WebApiPortfolioApp.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +75,7 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddMvc();
+builder.Services.AddScoped<NoSpecialCharactersAttribute>();
 builder.Services.AddScoped<ViewRender>();
 builder.Services.Configure<RazorViewEngineOptions>(options =>
 {

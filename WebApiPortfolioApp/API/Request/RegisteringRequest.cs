@@ -1,12 +1,14 @@
 ﻿using MediatR;
 using System.ComponentModel.DataAnnotations;
 using WebApiPortfolioApp.API.Respons;
+using WebApiPortfolioApp.Validation;
 
 namespace WebApiPortfolioApp.API.Request
 {
     public class RegisteringRequest : IRequest<RegisteringResponse>
     {
         [Required]
+        [NoSpecialCharactersAttribute]
         public string Name { get; set; }
         [Required]
         [DataType(DataType.EmailAddress), EmailAddress]

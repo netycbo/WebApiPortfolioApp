@@ -8,7 +8,7 @@ namespace WebApiPortfolioApp.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Admin,User")]
+    [Authorize(Roles = "Admin,User")]
     public class ProductsController : ControllerBase
     {
         private readonly IMediator _mediator;

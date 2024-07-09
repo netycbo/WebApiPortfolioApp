@@ -5,7 +5,7 @@ using WebApiPortfolioApp.Validation;
 
 namespace WebApiPortfolioApp.API.Request
 {
-    public class AddProductsToNewsLetterRequest : IRequest<RawJsonDto>
+    public class AddProductsToNewsLetterRequest : IRequest<RawJsonDtoResponse>
     {
         [NoSpecialCharactersAttribute]
         public string SearchProduct { get; set; }

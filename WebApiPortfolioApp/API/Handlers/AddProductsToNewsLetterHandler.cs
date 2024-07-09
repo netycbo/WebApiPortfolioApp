@@ -15,7 +15,7 @@ using WebApiPortfolioApp.Providers.ViewRender;
 using WebApiPortfolioApp.Services.SendEmail;
 namespace WebApiPortfolioApp.API.Handlers
 {
-    public class AddProductsToNewsLetterHandler : IRequestHandler<AddProductsToNewsLetterRequest, RawJsonDto>
+    public class AddProductsToNewsLetterHandler : IRequestHandler<AddProductsToNewsLetterRequest, RawJsonDtoResponse>
     {
         private readonly IApiCall _apiCall;
         private readonly IMapper _mapper;
@@ -50,7 +50,7 @@ namespace WebApiPortfolioApp.API.Handlers
             _shopNameValidator = shopNameValidator;
         }
 
-        public async Task<RawJsonDto> Handle(AddProductsToNewsLetterRequest request, CancellationToken cancellationToken)
+        public async Task<RawJsonDtoResponse> Handle(AddProductsToNewsLetterRequest request, CancellationToken cancellationToken)
         {
             var emailContent = await _viewRenderer.RenderToStringAsync("SendEmail/NewsLetter/WelcomToNewsLetter", new { ProductName = request.SearchProduct });
             var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct, 50);
@@ -109,13 +109,16 @@ namespace WebApiPortfolioApp.API.Handlers
                 {
                     throw new FailedToSaveExeption("Error occurred while saving products");
                 }
-                return new RawJsonDto();
-
+                
+                return new RawJsonDtoResponse { Data = groupedProducts };
+                
             }
+
             catch (CantDeserializeExeption)
             {
                 throw new CantDeserializeExeption(response.Content);
             }
+            
         }
     }
 }

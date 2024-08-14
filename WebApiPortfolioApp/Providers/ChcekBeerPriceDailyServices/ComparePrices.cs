@@ -5,17 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
 {
-    public class ComparePrices : IComparePrices
+    public class ComparePrices(AppDbContext context) : IComparePrices
     {
-        private readonly AppDbContext _context;
-
-        public ComparePrices(AppDbContext context)
-        {
-            _context = context;
-        }
         public async Task<decimal?> ComparePricesAsync(string productName)
         {
-            var averagePrice = await _context.SearchHistory
+            var averagePrice = await context.SearchHistory
             .Where(sh => sh.SearchString == productName)
             .Select(sh => (decimal?)sh.Price) 
             .AverageAsync();

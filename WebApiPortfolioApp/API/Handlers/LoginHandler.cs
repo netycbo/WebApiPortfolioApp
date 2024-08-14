@@ -15,36 +15,25 @@ using WebApiPortfolioApp.Data.Entinities.Identity;
 
 namespace WebApiPortfolioApp.API.Handlers
 {
-    public class LoginHandler : IRequestHandler<LoginRequest, LoginResponse>
+    public class LoginHandler(IMapper mapper, UserManager<ApplicationUser> userManager, IConfiguration configuration) : IRequestHandler<LoginRequest, LoginResponse>
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
-
-        public LoginHandler(IMapper mapper, UserManager<ApplicationUser> userManager, IConfiguration configuration)
-        {
-            _mapper = mapper;
-            _userManager = userManager;
-            _configuration = configuration;
-        }
-
         public async Task<LoginResponse> Handle(LoginRequest request, CancellationToken cancellationToken)
         {
-            var user = await _userManager.FindByEmailAsync(request.Email);
+            var user = await userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
                throw new UserNotFoundException("User not found.");
             }
-            var result = await _userManager.CheckPasswordAsync(user, request.Password);
+            var result = await userManager.CheckPasswordAsync(user, request.Password);
             if (!result)
             {
                 throw new InvalidPasswordException("Invalid password.");
             }
             
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await userManager.GetRolesAsync(user);
             var token = GenerateJwtToken(user, roles);
 
-            var userDto = _mapper.Map<LoginDto>(user);
+            var userDto = mapper.Map<LoginDto>(user);
             userDto.UserRole = roles.ToList();
             return new LoginResponse
             {
@@ -55,7 +44,7 @@ namespace WebApiPortfolioApp.API.Handlers
         private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]);
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, user.Email),
@@ -72,8 +61,8 @@ namespace WebApiPortfolioApp.API.Handlers
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddDays(2),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"],
+                Issuer = configuration["Jwt:Issuer"],
+                Audience = configuration["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

@@ -4,24 +4,16 @@ using WebApiPortfolioApp.Data;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
 {
-    public class AveragePriceComperator : IAveragePriceComparator
+    public class AveragePriceComperator(IComparePrices comparePrices, AppDbContext context) : IAveragePriceComparator
     {
-        private readonly IComparePrices _comparePrices;
-        private readonly AppDbContext _context;
-
-        public AveragePriceComperator(IComparePrices comparePrices, AppDbContext context)
-        {
-            _comparePrices = comparePrices;
-            _context = context;
-        }
         public async Task<bool> IsPriceBelowAverageAsync(string productName)
         {
-            var averagePrice = await _comparePrices.ComparePricesAsync(productName);
+            var averagePrice = await comparePrices.ComparePricesAsync(productName);
             if (!averagePrice.HasValue)
             {
                 return false;
             }
-            var lastRecord = await _context.SearchHistory
+            var lastRecord = await context.SearchHistory
                 .Where(sh => sh.SearchString == productName)
                 .OrderByDescending(sh => sh.Id)
                 .FirstOrDefaultAsync();

@@ -8,46 +8,31 @@ using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 
 namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
 {
-    public class ProductDetailsFetcher : IFetchProductDetails
+    public class ProductDetailsFetcher(IApiCall apiCall, IProductFilterService productFilterService, ISaveProductService productSaveService,
+         IMapper mapper, IDeserializeService deserializeService) : IFetchProductDetails
     {
-        private readonly IApiCall _apiCall;
-        private readonly IProductFilterService _productFilterService;
-        private readonly ISaveProductService _productSaveService;
-        private readonly IMapper _mapper;
-        private readonly IDeserializeService _deserializeService;
-
-        public ProductDetailsFetcher(IApiCall apiCall, IProductFilterService productFilterService, ISaveProductService productSaveService,
-             IMapper mapper, IDeserializeService deserializeService)
-        {
-            _apiCall = apiCall;
-            _productFilterService = productFilterService;
-            _productSaveService = productSaveService;
-            _mapper = mapper;
-            _deserializeService = deserializeService;
-        }
-
         public async Task<RawJsonDtoResponse> FetchProductDetails(bool isJob, CancellationToken cancellationToken)
         {
             try
             {
-                var restRequest = _apiCall.CreateProductSearchRequest("Hansa Mango Ipa 0,5l boks", numberOfResults: 10);
+                var restRequest = apiCall.CreateProductSearchRequest("Hansa Mango Ipa 0,5l boks", numberOfResults: 10);
 
-                var restResponse = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
+                var restResponse = await apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
                 if (restResponse.IsSuccessful && !string.IsNullOrEmpty(restResponse.Content))
                 {
                     Console.WriteLine($"Response Content: {restResponse.Content}");
                     
-                    var rawProductResponse = _deserializeService.Deserialize<RawJsonDtoResponse>(restResponse.Content);
+                    var rawProductResponse = deserializeService.Deserialize<RawJsonDtoResponse>(restResponse.Content);
                     if (rawProductResponse == null || rawProductResponse.Data == null)
                     {
                         return new RawJsonDtoResponse();
                     }
-                    var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
+                    var mappedProducts = mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
 
-                    var filteredProducts =  _productFilterService.FilterNullValues(mappedProducts);
-                    var lowestPrice = _productFilterService.GroupByLowestPrice(filteredProducts).ToList();
+                    var filteredProducts =  productFilterService.FilterNullValues(mappedProducts);
+                    var lowestPrice = productFilterService.GroupByLowestPrice(filteredProducts).ToList();
 
-                    await _productSaveService.SaveProductsAsync<List<RawJsonDto>>(lowestPrice, "-1", true);
+                    await productSaveService.SaveProductsAsync<List<RawJsonDto>>(lowestPrice, "-1", true);
 
                     return new RawJsonDtoResponse { Data = filteredProducts };
                 }

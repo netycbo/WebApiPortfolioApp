@@ -12,35 +12,16 @@ using WebApiPortfolioApp.ExeptionsHandling.Exeptions;
 
 namespace WebApiPortfolioApp.API.Handlers
 {
-    public class ProductSearchHandler : IRequestHandler<ProductSearchRequest, RawJsonDtoResponse>
+    public class ProductSearchHandler(IApiCall apiCall, IMapper mapper, IProductFilterService productFilterService,
+        ISaveProductService productSaveService, IHttpContextAccessor httpContextAccessor, IUserIdService userIdService,
+        IDeserializeService deserializeService, IShopNameValidator shopNameValidator) : IRequestHandler<ProductSearchRequest, RawJsonDtoResponse>
     {
-        private readonly IApiCall _apiCall;
-        private readonly IMapper _mapper;
-        private readonly IProductFilterService _productFilterService;
-        private readonly ISaveProductService _productSaveService;
-        private readonly IUserIdService _userIdService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IDeserializeService _deserializeService;
-        private readonly IShopNameValidator _shopNameValidator;
-
-        public ProductSearchHandler(IApiCall apiCall, IMapper mapper, IProductFilterService productFilterService,
-            ISaveProductService productSaveService, IHttpContextAccessor httpContextAccessor, IUserIdService userIdService,
-            IDeserializeService deserializeService, IShopNameValidator shopNameValidator)
-        {
-            _apiCall = apiCall;
-            _mapper = mapper;
-            _productFilterService = productFilterService;
-            _productSaveService = productSaveService;
-            _httpContextAccessor = httpContextAccessor;
-            _userIdService = userIdService;
-            _deserializeService = deserializeService;
-            _shopNameValidator = shopNameValidator;
-        }
+        private readonly IShopNameValidator _shopNameValidator = shopNameValidator;
 
         public async Task<RawJsonDtoResponse> Handle(ProductSearchRequest request, CancellationToken cancellationToken)
         {
-            var restRequest = _apiCall.CreateProductSearchRequest(request.SearchProduct, request.NumberOfResults);
-            var response = await _apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
+            var restRequest = apiCall.CreateProductSearchRequest(request.SearchProduct, request.NumberOfResults);
+            var response = await apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
 
             if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
             {
@@ -54,8 +35,8 @@ namespace WebApiPortfolioApp.API.Handlers
                 throw new CantDeserializeExeption(response.Content);
             }
 
-            var mappedProducts = _mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
-            var filterNullValues = _productFilterService.FilterNullValues(mappedProducts);
+            var mappedProducts = mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
+            var filterNullValues = productFilterService.FilterNullValues(mappedProducts);
 
             if (filterNullValues == null)
             {
@@ -66,19 +47,19 @@ namespace WebApiPortfolioApp.API.Handlers
             {
                 var shopNameValidatorTask = _shopNameValidator.ValidateShopName(request.Store);
                 var shopNameValidator = await shopNameValidatorTask;
-                filteredByStoreName = _productFilterService.FilterByStoreName(filterNullValues, shopNameValidator);
+                filteredByStoreName = productFilterService.FilterByStoreName(filterNullValues, shopNameValidator);
             }
-            var outOfStockFilter = _productFilterService.OutOfStockFilter(filteredByStoreName);
+            var outOfStockFilter = productFilterService.OutOfStockFilter(filteredByStoreName);
             if (outOfStockFilter == null)
             {
                 throw new OutOFStockExeption("Last date in price history is older than 25 days");
             }
 
-            var groupByLowestPrice = _productFilterService.GroupByLowestPrice(outOfStockFilter);
-            var userId = _userIdService.GetUserId();
+            var groupByLowestPrice = productFilterService.GroupByLowestPrice(outOfStockFilter);
+            var userId = userIdService.GetUserId();
             try
             {
-                await _productSaveService.SaveProductsAsync<List<RawJsonDto>>(groupByLowestPrice, userId, false);
+                await productSaveService.SaveProductsAsync<List<RawJsonDto>>(groupByLowestPrice, userId, false);
             }
             catch (FailedToSaveExeption)
             {

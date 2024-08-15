@@ -23,7 +23,7 @@ namespace WebApiPortfolioApp.API.Handlers
             var restRequest = apiCall.CreateProductSearchRequest(request.SearchProduct, request.NumberOfResults);
             var response = await apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
 
-            if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
+            if (/*(response.IsSuccessful || */ string.IsNullOrEmpty(response.Content))
             {
                 throw new FailedToFetchDataExeption("Failed to fetch data");
             }

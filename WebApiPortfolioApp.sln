@@ -5,6 +5,8 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiPortfolioApp", "WebApiPortfolioApp\WebApiPortfolioApp.csproj", "{B0244EA8-502B-4491-8F34-D81C305F19C3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiPortfolioTest", "WebApiPortfolioTest\WebApiPortfolioTest.csproj", "{55BBB8A9-2912-4A91-B5AD-ABF6640AE17C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{B0244EA8-502B-4491-8F34-D81C305F19C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0244EA8-502B-4491-8F34-D81C305F19C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0244EA8-502B-4491-8F34-D81C305F19C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55BBB8A9-2912-4A91-B5AD-ABF6640AE17C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55BBB8A9-2912-4A91-B5AD-ABF6640AE17C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55BBB8A9-2912-4A91-B5AD-ABF6640AE17C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55BBB8A9-2912-4A91-B5AD-ABF6640AE17C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

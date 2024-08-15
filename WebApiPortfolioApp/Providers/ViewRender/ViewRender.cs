@@ -8,22 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApiPortfolioApp.Providers.ViewRender
 {
-    public class ViewRender
+    public class ViewRender(IServiceScopeFactory serviceScopeFactory, IRazorViewEngine viewEngine, ITempDataProvider tempDataProvider)
     {
-        private readonly IRazorViewEngine _viewEngine;
-        private readonly ITempDataProvider _tempDataProvider;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-
-        public ViewRender(IServiceScopeFactory serviceScopeFactory, IRazorViewEngine viewEngine, ITempDataProvider tempDataProvider)
+       
+        public virtual async Task<string> RenderToStringAsync(string viewName, object model)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _viewEngine = viewEngine;
-            _tempDataProvider = tempDataProvider;
-        }
-
-        public async Task<string> RenderToStringAsync(string viewName, object model)
-        {
-            using (var scope = _serviceScopeFactory.CreateScope())
+            using (var scope = serviceScopeFactory.CreateScope())
             {
                 var httpContext = new DefaultHttpContext { RequestServices = scope.ServiceProvider };
                 var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());

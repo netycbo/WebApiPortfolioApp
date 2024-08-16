@@ -29,7 +29,7 @@ namespace WebApiPortfolioApp.API.Handlers
             var restRequest = apiCall.CreateProductSearchRequest(request.SearchProduct, 50);
             var response = await apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
             Console.WriteLine($"Response Content: {response.Content}");
-            if (response.IsSuccessful || string.IsNullOrEmpty(response.Content))
+            if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
             {
                 throw new FailedToFetchDataExeption("Failed to fetch data");
             }
@@ -56,7 +56,7 @@ namespace WebApiPortfolioApp.API.Handlers
                     filteredByStoreName = productFilterService.FilterByStoreName(filterNullValues, shopNameValidator);
                 }
                 var outOfStockFilter = productFilterService.OutOfStockFilter(filteredByStoreName);
-                if (outOfStockFilter == null)
+                if (outOfStockFilter.Count == 0)
                 {
                     throw new OutOFStockExeption("Last date in price history is older than 25 days");
                 }

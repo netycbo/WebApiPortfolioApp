@@ -41,7 +41,7 @@ namespace WebApiPortfolioApp.API.Handlers
                 Token = token
             };
         }
-        private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
+        public string GenerateJwtToken(ApplicationUser user, IList<string> roles)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]);

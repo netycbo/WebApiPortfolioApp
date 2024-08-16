@@ -23,7 +23,7 @@ namespace WebApiPortfolioApp.API.Handlers
             var restRequest = apiCall.CreateProductSearchRequest(request.SearchProduct, request.NumberOfResults);
             var response = await apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
 
-            if (/*(response.IsSuccessful || */ string.IsNullOrEmpty(response.Content))
+            if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
             {
                 throw new FailedToFetchDataExeption("Failed to fetch data");
             }
@@ -38,7 +38,7 @@ namespace WebApiPortfolioApp.API.Handlers
             var mappedProducts = mapper.Map<List<RawJsonDto>>(rawProductResponse.Data);
             var filterNullValues = productFilterService.FilterNullValues(mappedProducts);
 
-            if (filterNullValues == null)
+            if (filterNullValues.Count == 0)
             {
                 throw new NoMatchingFiltredProductsExeption("No matching filtered products");
             }
@@ -50,7 +50,7 @@ namespace WebApiPortfolioApp.API.Handlers
                 filteredByStoreName = productFilterService.FilterByStoreName(filterNullValues, shopNameValidator);
             }
             var outOfStockFilter = productFilterService.OutOfStockFilter(filteredByStoreName);
-            if (outOfStockFilter == null)
+            if (outOfStockFilter.Count == 0)
             {
                 throw new OutOFStockExeption("Last date in price history is older than 25 days");
             }

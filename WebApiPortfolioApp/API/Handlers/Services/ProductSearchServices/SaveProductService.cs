@@ -18,6 +18,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
         {
             var searchHistory = products.Select(product =>
             {
+                var now = DateTime.Now;
                 var priceHistory = product.Price_History.FirstOrDefault();
                 return new SearchHistory
                 {
@@ -27,7 +28,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
                     SearchDate = DateTime.UtcNow,
                     Store = product?.Store.Name ?? null,
                     Price = priceHistory?.Price ?? 0,
-                    Created = DateTime.UtcNow,
+                    Created = now,
                 };
             }).ToList();
 

@@ -12,13 +12,12 @@ namespace WebApiPortfolioApp.Data
     {
         private readonly IUserNameClaimService _userNameClaimServices;
 
-
-        public AppDbContext(DbContextOptions<AppDbContext> options, IUserNameClaimService userNameClaimServices) : base(options)
+        public  AppDbContext(DbContextOptions<AppDbContext> options, IUserNameClaimService userNameClaimServices) : base(options)
         {
             _userNameClaimServices = userNameClaimServices;
         }
 
-        public DbSet<SearchHistory> SearchHistory { get; set; }
+        public virtual DbSet<SearchHistory> SearchHistory { get; set; }
         public DbSet<ProductSubscription> ProductSubscriptions { get; set; }
         public DbSet<TemporaryProduct> TemporaryProducts { get; set; } 
 

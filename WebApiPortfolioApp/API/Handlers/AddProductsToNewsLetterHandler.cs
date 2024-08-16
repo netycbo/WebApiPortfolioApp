@@ -6,7 +6,6 @@ using WebApiPortfolioApp.API.Handlers.Services;
 using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.API.Handlers.Services.NewsLetterProductsServices;
-using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 using WebApiPortfolioApp.API.Request;
 using WebApiPortfolioApp.API.Respons;

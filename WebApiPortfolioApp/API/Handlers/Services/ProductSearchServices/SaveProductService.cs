@@ -51,5 +51,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
             _context.TemporaryProducts.AddRange(temporaryProducts);
             await _context.SaveChangesAsync();
         }
+
     }
+
 }

@@ -1,10 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using WebApiPortfolioApp.API.DTOs;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices;
 using WebApiPortfolioApp.Data;
@@ -92,5 +87,32 @@ public class SaveProductServiceTests : IDisposable
     public void Dispose()
     {
         _context?.Dispose();
+    }
+    [Test]
+    public async Task SaveTemporaryProductsAsync_ShouldAddProductsToContext()
+    {
+        // Arrange
+        var products = new List<TemporaryProductsDto>
+        {
+            new TemporaryProductsDto
+            {
+            Price = 100,
+            Name = "Product1",
+            Store = new StoreName { Name = "Store1" }
+            }
+        };
+
+        // Act
+        await _saveProductService.SaveTemporaryProductsAsync(products);
+
+        // Assert
+        var temporaryProducts = _context.TemporaryProducts.ToList();
+
+        Assert.AreEqual(1, temporaryProducts.Count); 
+        var temporaryProduct = temporaryProducts.First(); 
+
+        Assert.AreEqual("Product1", temporaryProduct.Name);
+        Assert.AreEqual("Store1", temporaryProduct.Store); 
+        Assert.AreEqual(100, temporaryProduct.Price); 
     }
 }

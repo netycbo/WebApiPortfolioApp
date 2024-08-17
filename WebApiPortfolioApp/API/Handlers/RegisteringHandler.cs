@@ -14,7 +14,7 @@ namespace WebApiPortfolioApp.API.Handlers
 {
     public class RegisteringHandler(IMapper mapper, UserManager<ApplicationUser> userManager,
                               RoleManager<IdentityRole> roleManager, IConfiguration configuration,
-                              IEmailService emailService, ViewRender viewRenderer) : IRequestHandler<RegisteringRequest, RegisteringResponse>
+                              IEmailService emailService, IViewRender viewRenderer) : IRequestHandler<RegisteringRequest, RegisteringResponse>
     {
         public async Task<RegisteringResponse> Handle(RegisteringRequest request, CancellationToken cancellationToken)
         {

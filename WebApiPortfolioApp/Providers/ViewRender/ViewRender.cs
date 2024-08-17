@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApiPortfolioApp.Providers.ViewRender
 {
-    public class ViewRender(IServiceScopeFactory serviceScopeFactory, IRazorViewEngine viewEngine, ITempDataProvider tempDataProvider)
+    public class ViewRender(IServiceScopeFactory serviceScopeFactory, IRazorViewEngine viewEngine, ITempDataProvider tempDataProvider) : IViewRender
     {
        
         public virtual async Task<string> RenderToStringAsync(string viewName, object model)

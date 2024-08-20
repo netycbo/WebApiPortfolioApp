@@ -3,6 +3,7 @@ using MediatR;
 using Newtonsoft.Json;
 using WebApiPortfolioApp.API.DTOs.Helpers;
 using WebApiPortfolioApp.API.Handlers.Services;
+using WebApiPortfolioApp.API.Handlers.Services.DeserializeService;
 using WebApiPortfolioApp.API.Handlers.Services.Interfaces;
 using WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices.Interfaces;
 using WebApiPortfolioApp.API.Request;
@@ -17,6 +18,7 @@ namespace WebApiPortfolioApp.API.Handlers
         IProductFilterService productFilterService,
         ISaveProductService productSaveService,
         IUserIdService userIdService,
+        IDeserializeService deserializeService,
         IShopNameValidator shopNameValidator) : IRequestHandler<ProductSearchRequest, RawJsonDtoResponse>
     {
         private readonly IShopNameValidator _shopNameValidator = shopNameValidator;
@@ -34,12 +36,12 @@ namespace WebApiPortfolioApp.API.Handlers
                 var restRequest = apiCall.CreateProductSearchRequest(request.SearchProduct, request.NumberOfResults);
                 var response = await apiCall.ExecuteRequestAsync(restRequest, cancellationToken);
 
-                if (!response.IsSuccessful || string.IsNullOrEmpty(response.Content))
+                if (!response.IsSuccessful && string.IsNullOrEmpty(response.Content))
                 {
                     throw new FailedToFetchDataExeption("Failed to fetch data");
                 }
 
-                var rawProductResponse = JsonConvert.DeserializeObject<RawJsonDtoResponse>(response.Content);
+                var rawProductResponse = deserializeService.Deserialize<RawJsonDtoResponse>(response.Content);
 
                 if (rawProductResponse == null || rawProductResponse.Data == null)
                 {

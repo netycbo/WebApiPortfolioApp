@@ -25,7 +25,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
         public List<RawJsonDto> OutOfStockFilter(List<RawJsonDto> filteredData)
         {
             var outOfStockFilter = filteredData
-         .Where(d => d.Price_History.FirstOrDefault().Date > DateTime.Now.AddDays(-25))
+         .Where(d => d.Price_History.FirstOrDefault().Date > DateTime.Now.AddDays(-1))
          .GroupBy(d => d.Name)
          .Select(g => g.OrderBy(d => d.Current_Price).Last())
          .Take(20)

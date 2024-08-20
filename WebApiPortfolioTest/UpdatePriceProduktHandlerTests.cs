@@ -152,6 +152,8 @@ namespace WebApiPortfolioTest
 
             Assert.AreEqual(20, tempProduct1.Price);
             Assert.AreEqual(40, tempProduct2.Price);
+            Assert.AreEqual("Store3", tempProduct1.Store.Name);
+            Assert.AreEqual("Store4", tempProduct2.Store.Name);
 
         }
         [TearDown]

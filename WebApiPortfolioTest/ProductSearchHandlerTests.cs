@@ -71,9 +71,7 @@ namespace WebApiPortfolioTest
             _mockMapper.Setup(x => x.Map<List<RawJsonDto>>(It.IsAny<object>()))
                 .Returns(apiResponse.Data);
 
-            _mockProductFilterService.SetupSequence(x => x.FilterNullValues(It.IsAny<List<RawJsonDto>>()))
-                .Returns(wrongApiResponse.Data)
-                .Returns(wrongApiResponse.Data)
+            _mockProductFilterService.Setup(x => x.FilterNullValues(It.IsAny<List<RawJsonDto>>()))
                 .Returns(apiResponse.Data);
 
             _mockProductFilterService.Setup(x => x.GroupByLowestPrice(It.IsAny<List<RawJsonDto>>()))
@@ -89,7 +87,8 @@ namespace WebApiPortfolioTest
             // Arrange
             var request = new ProductSearchRequest
             {
-                SearchProduct = "TestProduct"
+                SearchProduct = "TestProduct",
+                Store = ""
             };
 
             // Act
@@ -108,7 +107,8 @@ namespace WebApiPortfolioTest
             var request = new ProductSearchRequest
             {
                 SearchProduct = "TestProduct",
-                Store = "Store3"
+                Store = "Store3",
+                NumberOfResults = 12
             };
 
             // Act
@@ -128,6 +128,28 @@ namespace WebApiPortfolioTest
                 SearchProduct = "TestProduct",
                 NumberOfResults = 1
             };
+            var wrongApiResponse = new RawJsonDtoResponse
+            {
+                Data = new List<RawJsonDto>()
+            };
+            var apiResponse = new RawJsonDtoResponse
+            {
+                Data = new List<RawJsonDto>
+                {
+                new RawJsonDto { Name = "TestProduct", Current_Price = 20, Vendor = "TestVendor", Store = new StoreName { Name = "Store3", Code = "Code3" }, Price_History = new List<Price_History> { new Price_History { Price = 20, Date = DateTime.Now }}, Id = 1 },
+                new RawJsonDto { Name = "TestProduct", Current_Price = 23, Vendor = "TestVendor", Store = new StoreName { Name = "Store4", Code = "Code3" }, Price_History = new List<Price_History> { new Price_History { Price = 20, Date = DateTime.Now }}, Id = 2 },
+                new RawJsonDto { Name = "TestProduct", Current_Price = 33, Vendor = "TestVendor", Store = new StoreName { Name = "Store5", Code = "Code3" }, Price_History = new List<Price_History> { new Price_History { Price = 20, Date = DateTime.Now }}, Id = 3 }
+                }
+            };
+            _mockProductFilterService.SetupSequence(x => x.FilterNullValues(It.IsAny<List<RawJsonDto>>()))
+                .Returns(wrongApiResponse.Data)
+                .Returns(wrongApiResponse.Data)
+                .Returns(apiResponse.Data);
+
+            _mockApiCall.SetupSequence(x => x.ExecuteRequestAsync(It.IsAny<RestRequest>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new RestResponse { Content = JsonConvert.SerializeObject(wrongApiResponse) })
+        .ReturnsAsync(new RestResponse { Content = JsonConvert.SerializeObject(wrongApiResponse) })
+        .ReturnsAsync(new RestResponse { Content = JsonConvert.SerializeObject(apiResponse) });
 
             // Act
             var result = await _handler.Handle(request, CancellationToken.None);

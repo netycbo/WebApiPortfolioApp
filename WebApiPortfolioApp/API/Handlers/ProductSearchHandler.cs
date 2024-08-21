@@ -50,7 +50,11 @@ namespace WebApiPortfolioApp.API.Handlers
 
                 filterNullValues = productFilterService.FilterNullValues(mapper.Map<List<RawJsonDto>>(rawProductResponse.Data));
 
-                if (filterNullValues.Count >1 && request.NumberOfResults < 5)
+                if (filterNullValues.Count != 0)
+                {
+                    break;
+                }
+                else if (request.NumberOfResults < 5 && attempts >= MaxRetries)
                 {
                     break;
                 }

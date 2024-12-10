@@ -109,6 +109,7 @@ builder.Services.AddScoped<IUserNameClaimService, UserNameClaimService>();
 builder.Services.AddScoped<IGetEmailService, GetEmailService>();
 builder.Services.AddScoped<ISaveToProductSubscriptionService, SaveToProductSubscriptionService>();
 builder.Services.AddSingleton<ShopNameList>();
+builder.Services.AddScoped<IViewRender, ViewRender>();
 builder.Services.AddSingleton(provider =>
 {
     var shopNameList = provider.GetRequiredService<ShopNameList>();
@@ -129,7 +130,7 @@ builder.Services.AddQuartz(q =>
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 var schedulerFactory = app.Services.GetRequiredService<ISchedulerFactory>();
 var scheduler = await schedulerFactory.GetScheduler();
 await JobScheduler.ScheduleJob(scheduler);

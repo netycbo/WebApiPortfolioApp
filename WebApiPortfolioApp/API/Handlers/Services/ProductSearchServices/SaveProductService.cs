@@ -32,7 +32,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ProductSearchServices
                 };
             }).ToList();
 
-            _context.SearchHistory.AddRange(searchHistory);
+            _context.SearchHistories.AddRange(searchHistory);
             await _context.SaveChangesAsync();
         }
 

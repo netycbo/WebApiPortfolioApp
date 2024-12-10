@@ -17,9 +17,27 @@ namespace WebApiPortfolioApp.Data
             _userNameClaimServices = userNameClaimServices;
         }
 
-        public virtual DbSet<SearchHistory> SearchHistory { get; set; }
+        public virtual DbSet<SearchHistory> SearchHistories { get; set; }
         public DbSet<ProductSubscription> ProductSubscriptions { get; set; }
-        public DbSet<TemporaryProduct> TemporaryProducts { get; set; } 
+        public DbSet<TemporaryProduct> TemporaryProducts { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder); 
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(u => u.SearchHistories) 
+                .WithOne(h => h.User)
+                .HasForeignKey(h => h.UserId)
+                .OnDelete(DeleteBehavior.Cascade); 
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(u => u.ProductSubscriptions) 
+                .WithOne(s => s.User)
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade); 
+        }
+
 
         public async Task<int> SaveChangesAsync()
         {

@@ -13,7 +13,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
             {
                 return false;
             }
-            var lastRecord = await context.SearchHistory
+            var lastRecord = await context.SearchHistories
                 .Where(sh => sh.SearchString == productName)
                 .OrderByDescending(sh => sh.Id)
                 .FirstOrDefaultAsync();

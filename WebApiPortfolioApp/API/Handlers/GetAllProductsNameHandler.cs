@@ -13,7 +13,7 @@ namespace WebApiPortfolioApp.API.Handlers
     {
         public async Task<GetAllProductsNameRespons> Handle(GetAllProductsNameRequest request, CancellationToken cancellationToken)
         {
-            var searchStrings = await dbContext.SearchHistory
+            var searchStrings = await dbContext.SearchHistories
                 .Select(sh => sh.SearchString)
                 .ToListAsync(cancellationToken);
             var productNameCounts = new Dictionary<string, int>();

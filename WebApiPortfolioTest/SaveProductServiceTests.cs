@@ -63,7 +63,7 @@ public class SaveProductServiceTests : IDisposable
         await _saveProductService.SaveProductsAsync<SearchHistory>(products, userId, isJob);
 
         // Assert
-        var searchHistories = _context.SearchHistory.ToList();
+        var searchHistories = _context.SearchHistories.ToList();
         Assert.AreEqual(1, searchHistories.Count);
         var searchHistory = searchHistories.First();
 

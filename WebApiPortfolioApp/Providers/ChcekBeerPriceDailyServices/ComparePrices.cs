@@ -9,7 +9,7 @@ namespace WebApiPortfolioApp.API.Handlers.Services.ChcekBeerPriceDailyServices
     {
         public async Task<decimal?> ComparePricesAsync(string productName)
         {
-            var averagePrice = await context.SearchHistory
+            var averagePrice = await context.SearchHistories
             .Where(sh => sh.SearchString == productName)
             .Select(sh => (decimal?)sh.Price) 
             .AverageAsync();

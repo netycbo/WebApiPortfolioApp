@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApiPortfolioApp.Data;
 
@@ -11,9 +12,11 @@ using WebApiPortfolioApp.Data;
 namespace WebApiPortfolioApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241210110430_first")]
+    partial class first
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -239,8 +242,7 @@ namespace WebApiPortfolioApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(4, 4)
-                        .HasColumnType("decimal(4,4)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ProductName")
                         .IsRequired()
@@ -289,8 +291,7 @@ namespace WebApiPortfolioApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(4, 4)
-                        .HasColumnType("decimal(4,4)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("SearchDate")
                         .HasColumnType("datetime2");
@@ -305,8 +306,7 @@ namespace WebApiPortfolioApp.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -404,7 +404,7 @@ namespace WebApiPortfolioApp.Migrations
             modelBuilder.Entity("WebApiPortfolioApp.Data.Entinities.SearchHistory", b =>
                 {
                     b.HasOne("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", "User")
-                        .WithMany("SearchHistories")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -415,8 +415,6 @@ namespace WebApiPortfolioApp.Migrations
             modelBuilder.Entity("WebApiPortfolioApp.Data.Entinities.Identity.ApplicationUser", b =>
                 {
                     b.Navigation("ProductSubscriptions");
-
-                    b.Navigation("SearchHistories");
                 });
 #pragma warning restore 612, 618
         }

@@ -23,7 +23,7 @@ namespace WebApiPortfolioApp.API.Handlers
     {
         private readonly IShopNameValidator _shopNameValidator = shopNameValidator;
 
-        private const int MaxRetries = 100;
+        private const int MaxRetries = 10;
 
         public async Task<RawJsonDtoResponse> Handle(ProductSearchRequest request, CancellationToken cancellationToken)
         {

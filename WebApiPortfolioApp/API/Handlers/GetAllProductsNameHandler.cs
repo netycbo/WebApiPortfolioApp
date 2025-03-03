@@ -9,29 +9,31 @@ using System.Linq;
 
 namespace WebApiPortfolioApp.API.Handlers
 {
-    public class GetAllProductsNameHandler(IMapper mapper, AppDbContext dbContext) : IRequestHandler<GetAllProductsNameRequest, GetAllProductsNameRespons>
+    public class GetAllProductsNameHandler : IRequestHandler<GetAllProductsNameRequest, GetAllProductsNameRespons>
     {
+        private readonly IMapper _mapper;
+        private readonly AppDbContext _dbContext;
+
+        public GetAllProductsNameHandler(IMapper mapper, AppDbContext dbContext)
+        {
+            _mapper = mapper;
+            _dbContext = dbContext;
+        }
+
         public async Task<GetAllProductsNameRespons> Handle(GetAllProductsNameRequest request, CancellationToken cancellationToken)
         {
-            var searchStrings = await dbContext.SearchHistories
+            var searchStrings = await _dbContext.SearchHistories
                 .Select(sh => sh.SearchString)
                 .ToListAsync(cancellationToken);
-            var productNameCounts = new Dictionary<string, int>();
-            foreach (var productName in searchStrings)
-            {
-                var normalizedProductName = String.Join(" ", productName.Split(' ').OrderBy(word => word).ToArray());
-                if (productNameCounts.ContainsKey(normalizedProductName))
-                {
-                    productNameCounts[normalizedProductName]++;
-                }
-                else
-                {
-                    productNameCounts.Add(normalizedProductName, 1);
-                }
-            }
+
+            var productNameCounts = searchStrings
+                .Select(productName => String.Join(" ", productName.Split(' ').OrderBy(word => word).ToArray()))
+                .GroupBy(normalizedProductName => normalizedProductName)
+                .ToDictionary(group => group.Key, group => group.Count());
+
             var productNames = productNameCounts.Select(pn => new ProductNamesDto
             {
-                ProductName = pn.Key, 
+                ProductName = pn.Key,
                 Quantity = pn.Value
             }).ToList();
 
